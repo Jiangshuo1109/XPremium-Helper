@@ -14,6 +14,8 @@ Chrome / Edge 扩展。在 X 页面核实账号关系后，把「关注」「回
 
 由 **禁忌の小姜** 维护：[关注 @jiangza9](https://x.com/jiangza9)，查看更新、使用记录和开发进展。关注完全自愿，不影响任何功能。
 
+> ⚠️ **免责声明：** 本项目是独立的预览版开源扩展，与 X Corp. 无隶属关系。使用者应自行遵守 X 规则并核对每次操作；项目不保证账号关系判断、平台操作结果或持续兼容性。详见 [完整免责声明](DISCLAIMER.md)。
+
 ## 功能与截图
 
 以下截图来自实际加载扩展的隔离浏览器，账号和帖子都是虚构样例，不是线上用户数据，也不代表真实 X 服务端操作验收。
@@ -103,7 +105,7 @@ npm run package
 
 ## 参与维护
 
-[贡献指南](CONTRIBUTING.md) · [安全问题](SECURITY.md) · [版本发布流程](docs/RELEASING.md) · [后续计划](docs/ROADMAP.md) · [技术说明](docs/需求与技术说明.md)
+[贡献指南](CONTRIBUTING.md) · [安全问题](SECURITY.md) · [免责声明](DISCLAIMER.md) · [版本发布流程](docs/RELEASING.md) · [后续计划](docs/ROADMAP.md) · [技术说明](docs/需求与技术说明.md)
 
 欢迎提交可复现的问题、选择器修复、测试和翻译。截图与日志请去掉真实聊天、账号列表、Cookie、令牌及本地个人路径。关注更新可在仓库选择 **Watch → Custom → Releases**，或关注 [禁忌の小姜 @jiangza9](https://x.com/jiangza9)。
 

@@ -15,7 +15,7 @@ const tag = process.env.GITHUB_REF_TYPE === "tag" ? process.env.GITHUB_REF_NAME 
 if (tag) assert.equal(tag, `v${pkg.version}-preview`, "Tag must match the preview package version");
 const changelog = await readFile("CHANGELOG.md", "utf8");
 assert.ok(changelog.includes(`## [${pkg.version}]`), "Add this version to CHANGELOG.md");
-for (const file of ["LICENSE", "PRIVACY.md", "README.md", "README.en.md", "README.es.md", "README.ja.md", "README.pt-BR.md"]) {
+for (const file of ["LICENSE", "PRIVACY.md", "DISCLAIMER.md", "README.md", "README.en.md", "README.es.md", "README.ja.md", "README.pt-BR.md"]) {
   const text = await readFile(file, "utf8");
   assert.ok(text.trim(), `${file} must not be empty`);
   if (file.startsWith("README")) {

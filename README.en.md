@@ -12,6 +12,8 @@ A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow 
 
 Maintained by **禁忌の小姜**. [Follow @jiangza9 on X](https://x.com/jiangza9) for updates and development notes. Following is optional and never unlocks features.
 
+> ⚠️ **Disclaimer:** This is an independent preview extension and is not affiliated with X Corp. Check every action and follow applicable platform rules. The project does not guarantee relationship accuracy, platform results, or continued compatibility. Read the [full disclaimer](DISCLAIMER.md).
+
 ## Features In Use
 
 Screenshots show the actual extension running against isolated fixtures with fictional accounts and posts. They do not demonstrate successful operations against X's servers.
@@ -86,7 +88,7 @@ Load `dist/chrome` or `dist/edge`. Archives go to `release/`; reports go to `art
 
 Browser tests use intercepted network requests and fictional fixtures. Chromium is required; missing or failing local Chrome / Edge targets remain reported as not passed. Fixture success is not live-site acceptance.
 
-[Contribute](CONTRIBUTING.md) · [Security](SECURITY.md) · [Release process](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md)
+[Contribute](CONTRIBUTING.md) · [Security](SECURITY.md) · [Disclaimer](DISCLAIMER.md) · [Release process](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md)
 
 Remove real conversations, account lists, credentials, and personal paths before sharing reports. Subscribe via **Watch → Custom → Releases**, or follow [禁忌の小姜 @jiangza9](https://x.com/jiangza9).
 

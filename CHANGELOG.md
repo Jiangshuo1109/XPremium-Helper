@@ -17,6 +17,7 @@
 - 如实记录 local 存储回退、多标签页状态共享与群聊实站未验收的限制。
 - 安装包包含许可、五语文档和功能截图；没有扩展新增权限或关系操作范围。
 - 更新 Vitest 测试工具链，处理依赖审计发现的已知漏洞。
+- 增加仓库级中英免责声明，并在各语言 README 与预览包中提供入口。
 
 MIT license; five-language documentation and fixture screenshots; author links; CI and tag-based preview releases; version consistency checks; privacy and contribution documents. No new extension permissions or relationship actions.
 

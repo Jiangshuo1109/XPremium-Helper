@@ -8,7 +8,8 @@ await mkdir("release", { recursive: true });
 const checksums = [];
 for (const browser of ["chrome", "edge"]) {
   for (const file of ["README.md", "README.en.md", "README.es.md", "README.ja.md",
-    "README.pt-BR.md", "LICENSE", "PRIVACY.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md"]) {
+    "README.pt-BR.md", "LICENSE", "PRIVACY.md", "DISCLAIMER.md", "CHANGELOG.md",
+    "CONTRIBUTING.md", "SECURITY.md"]) {
     const text = (await readFile(file, "utf8"))
       .replaceAll("docs/验证记录.md", "docs/verification.md")
       .replaceAll("docs/需求与技术说明.md", "docs/specification.md");

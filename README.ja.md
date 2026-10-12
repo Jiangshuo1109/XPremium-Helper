@@ -10,6 +10,8 @@ X のアバター下にフォロー、フォローバック、確認付きフォ
 
 開発者：**禁忌の小姜**。[X で @jiangza9 をフォロー](https://x.com/jiangza9)すると更新情報を確認できます。フォローは任意で、機能の利用条件ではありません。
 
+> ⚠️ **免責事項：** 本拡張機能は独立したプレビュー版であり、X Corp. とは無関係です。各操作を確認し、X の規則を守ってください。関係判定、操作結果、将来の互換性は保証されません。詳しくは[免責事項](DISCLAIMER.md)をご覧ください。
+
 ## 機能と画面
 
 以下は実際の拡張機能を隔離ブラウザーで動かした画面です。アカウントと投稿は架空のテストデータで、実際の X サーバー上での操作成功を示すものではありません。
@@ -73,7 +75,7 @@ npm run package
 
 `dist/chrome` または `dist/edge` を読み込みます。配布 ZIP は `release/`、テスト結果は `artifacts/` に生成され、Git 対象外です。公開画像は `docs/screenshots/` にあります。テストは通信を遮断した架空ページを使い、Chromium を必須とします。未導入または失敗した Chrome / Edge は合格扱いにしません。
 
-[貢献方法](CONTRIBUTING.md) · [セキュリティ](SECURITY.md) · [リリース手順](docs/RELEASING.md) · [今後の予定](docs/ROADMAP.md)
+[貢献方法](CONTRIBUTING.md) · [セキュリティ](SECURITY.md) · [免責事項](DISCLAIMER.md) · [リリース手順](docs/RELEASING.md) · [今後の予定](docs/ROADMAP.md)
 
 報告から実際の会話、アカウント一覧、認証情報、個人パスを除いてください。更新通知は **Watch → Custom → Releases** または [禁忌の小姜 @jiangza9](https://x.com/jiangza9) から確認できます。
 

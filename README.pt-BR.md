@@ -10,6 +10,8 @@ Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e dei
 
 Mantida por **禁忌の小姜**. [Siga @jiangza9 no X](https://x.com/jiangza9) para acompanhar atualizações. Seguir é opcional e não libera nem limita recursos.
 
+> ⚠️ **Aviso:** Esta é uma extensão independente em versão prévia e não é afiliada à X Corp. Confira cada ação e respeite as regras da plataforma. O projeto não garante a precisão das relações, os resultados no X ou a compatibilidade futura. Leia o [aviso completo](DISCLAIMER.md).
+
 ## Recursos E Capturas
 
 As imagens mostram a extensão real em um navegador isolado, com contas e publicações fictícias. Não comprovam operações concluídas nos servidores do X.
@@ -74,7 +76,7 @@ npm run package
 
 Carregue `dist/chrome` ou `dist/edge`. Pacotes ficam em `release/` e relatórios em `artifacts/`, ambos fora do Git. Capturas públicas ficam em `docs/screenshots/`. Os testes usam páginas fictícias e interceptam a rede. Chromium é obrigatório; Chrome / Edge ausentes ou com falha não são registrados como aprovados.
 
-[Contribuir](CONTRIBUTING.md) · [Segurança](SECURITY.md) · [Publicação](docs/RELEASING.md) · [Próximos passos](docs/ROADMAP.md)
+[Contribuir](CONTRIBUTING.md) · [Segurança](SECURITY.md) · [Aviso](DISCLAIMER.md) · [Publicação](docs/RELEASING.md) · [Próximos passos](docs/ROADMAP.md)
 
 Remova conversas, listas de contas, credenciais e caminhos pessoais dos relatórios. Acompanhe versões por **Watch → Custom → Releases** ou siga [禁忌の小姜 @jiangza9](https://x.com/jiangza9).
 

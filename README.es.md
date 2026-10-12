@@ -12,6 +12,8 @@ Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y 
 
 Mantenida por **禁忌の小姜**. [Sigue a @jiangza9 en X](https://x.com/jiangza9) para conocer novedades y avances. Seguir al autor es opcional y no condiciona ninguna función.
 
+> ⚠️ **Aviso:** Esta es una extensión independiente en versión preliminar y no está afiliada a X Corp. Comprueba cada acción y respeta las reglas aplicables de la plataforma. El proyecto no garantiza la exactitud de las relaciones, los resultados en X ni la compatibilidad futura. Consulta el [aviso completo](DISCLAIMER.md).
+
 ## Funciones Y Capturas
 
 Las capturas muestran la extensión real en un navegador aislado con cuentas y publicaciones ficticias. No acreditan operaciones completadas en los servidores de X.
@@ -86,7 +88,7 @@ Carga `dist/chrome` o `dist/edge`. Los paquetes se guardan en `release/` y los i
 
 Las pruebas interceptan las solicitudes de red y utilizan páginas ficticias. Chromium es obligatorio; Chrome y Edge ausentes o fallidos se registran como no aprobados. Estas pruebas no sustituyen la validación en el sitio real.
 
-[Contribuir](CONTRIBUTING.md) · [Seguridad](SECURITY.md) · [Publicación de versiones](docs/RELEASING.md) · [Próximos pasos](docs/ROADMAP.md)
+[Contribuir](CONTRIBUTING.md) · [Seguridad](SECURITY.md) · [Aviso](DISCLAIMER.md) · [Publicación de versiones](docs/RELEASING.md) · [Próximos pasos](docs/ROADMAP.md)
 
 Elimina conversaciones reales, listas de cuentas, credenciales y rutas personales antes de compartir informes. Para recibir avisos, usa **Watch → Custom → Releases** o sigue a [禁忌の小姜 @jiangza9](https://x.com/jiangza9).
 
