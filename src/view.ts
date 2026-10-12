@@ -180,14 +180,14 @@ export class View {
         this.cooldownUntil = 0;
         clearInterval(this.cooldownTimer);
         this.cooldownTimer = undefined;
-        this.status.textContent = "回关 CD 已结束，可以继续操作";
+        this.status.textContent = "建议冷却已结束，是否恢复以 X 为准";
         this.status.hidden = false;
         this.statusTimer = setTimeout(() => { this.status.hidden = true; }, 6000);
         return;
       }
       const seconds = Math.max(0, Math.ceil((until - Date.now()) / 1000));
       const minutes = Math.floor(seconds / 60);
-      this.status.textContent = `X 速度限制，回关 CD：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+      this.status.textContent = `X 速度限制，建议冷却：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
       this.status.hidden = false;
     };
     update();

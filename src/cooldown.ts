@@ -1,5 +1,9 @@
 export const FOLLOW_COOLDOWN_MS = 30 * 60 * 1000;
 
+export function mergeCooldown(current: unknown, candidate: number): number {
+  return Math.max(typeof current === "number" && Number.isFinite(current) ? current : 0, candidate);
+}
+
 export function cooldownActive(until: number, now = Date.now()): boolean {
   return Number.isFinite(until) && until > now;
 }

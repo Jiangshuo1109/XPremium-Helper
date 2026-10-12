@@ -29,11 +29,11 @@ async function readPage(): Promise<void> {
 function renderCooldown(): void {
   const seconds = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
   if (seconds <= 0) {
-    cooldown.textContent = cooldownUntil ? "冷却已结束" : "暂无冷却";
+    cooldown.textContent = cooldownUntil ? "建议冷却已结束，以 X 为准" : "暂无冷却";
     return;
   }
   const minutes = Math.floor(seconds / 60);
-  cooldown.textContent = `回关 CD：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  cooldown.textContent = `建议冷却：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 async function load(): Promise<void> {

@@ -273,8 +273,20 @@ for (const target of targets) {
     assert.equal(await popup.locator("#records").innerText(), "当前页面暂无可显示的关系");
     result.checks.push("popup-identity-author-link-search-filter-and-empty-state");
     await popup.locator("#search").fill("");
-    await popup.evaluate(() => chrome.storage.local.set({ cooldownUntil: Date.now() + 30 * 60 * 1000 }));
-    await popup.waitForFunction(() => document.querySelector("#cooldown").textContent.startsWith("回关 CD："));
+    await page.goto("https://x.com/viewer/verified_followers");
+    await page.evaluate(() => {
+      const alert = document.createElement("div");
+      alert.setAttribute("role", "alert");
+      alert.textContent = "抱歉，你受到速度限制。请稍等片刻，然后再试一次。";
+      document.body.append(alert);
+    });
+    await popup.waitForFunction(() => document.querySelector("#cooldown").textContent.startsWith("建议冷却："));
+    const savedUntil = await popup.evaluate(async () => (await chrome.storage.local.get("cooldownUntil")).cooldownUntil);
+    assert.ok(savedUntil > Date.now());
+    await page.reload();
+    await page.getByText("X 速度限制，建议冷却：", { exact: false }).waitFor();
+    assert.equal(await popup.evaluate(async () => (await chrome.storage.local.get("cooldownUntil")).cooldownUntil), savedUntil);
+    result.checks.push("native-alert-certified-followers-worker-sync-reload-persistence");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup-cooldown.png` });
     await popup.evaluate(() => chrome.storage.local.remove("cooldownUntil"));
     result.checks.push("popup-active-cooldown-screenshot");
