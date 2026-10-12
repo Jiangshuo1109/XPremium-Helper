@@ -39,6 +39,10 @@ if (!window.__xfhStarted && window === window.top) {
     }).catch(() => notices?.notify("冷却同步失败，请重新加载扩展"));
   };
   chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+    if (message?.type === "xfh-recheck" && typeof message.handle === "string") {
+      controller?.recheck(message.handle.toLowerCase());
+      respond({ accepted: true });
+    }
     if (message?.type === "xfh-page-state") {
       controller?.scan();
       respond(latestState);

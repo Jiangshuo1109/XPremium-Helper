@@ -85,7 +85,8 @@ export function readControl(control: HTMLElement): Evidence | null {
       followsYou = false;
     }
   }
-  return { handle, nativeId: control.dataset.testid!.split("-")[0], relationship, followsYou, control };
+  const blue = card && scopeHandle === handle ? blueBadgeIn(card) : false;
+  return { handle, nativeId: control.dataset.testid!.split("-")[0], relationship, followsYou, control, blue };
 }
 
 export function collectEvidence(doc: Document, excluded?: WeakSet<HTMLElement>,
@@ -239,6 +240,15 @@ export function isRateLimitMessage(text: string): boolean {
 }
 
 /** Only count the badge attached to this author's name, never a quoted post's badge. */
+function blueBadgeIn(scope: Element): boolean {
+  return [...scope.querySelectorAll<SVGElement>('svg[data-testid="icon-verified"]')]
+    .some(badge => {
+      const style = getComputedStyle(badge);
+      const color = style.fill.toLowerCase() === "currentcolor" || !style.fill ? style.color : style.fill;
+      return /^rgba?\(\s*29,\s*155,\s*240\s*(?:,\s*1(?:\.0+)?\s*)?\)$/.test(color);
+    });
+}
+
 export function hasBlueBadge(avatar: Avatar): boolean {
   for (const name of avatar.region.querySelectorAll<HTMLElement>('[data-testid="User-Name"]')) {
     const article = name.closest('article[data-testid="tweet"]');

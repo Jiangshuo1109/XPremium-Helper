@@ -89,6 +89,12 @@ function renderPanel(): void {
   progress.textContent = `已发现 ${pageState.discovered} · 已确认 ${pageState.verified} · 待处理 ${pageState.pending}`
     + (pageState.failed ? ` · 失败 ${pageState.failed}` : "")
     + (pageState.paused ? " · 用户操作中" : "");
+  if (pageState.diagnostic) progress.textContent = pageState.diagnostic;
+  const timingNames: Record<string, string> = { identity: "身份确认", discovery: "头像发现",
+    badges: "蓝 V 判断", render: "按钮渲染", relationship: "资料卡读取",
+    dispatch: "操作触发", confirmation: "X 结果确认" };
+  progress.title = Object.entries(pageState.timings ?? {}).map(([key, value]) =>
+    `${timingNames[key] ?? key} ${value.toFixed(1)} ms`).join("；");
   records.replaceChildren();
   for (const record of pageState.records.filter(matches).slice(0, 80)) {
     const row = document.createElement("li");
@@ -97,6 +103,24 @@ function renderPanel(): void {
     const state = document.createElement("span");
     state.textContent = label(record);
     row.append(name, state);
+    if (record.error) {
+      const reason = document.createElement("small");
+      reason.textContent = record.error;
+      const retry = document.createElement("button");
+      retry.textContent = "↻";
+      retry.title = `重新核实 @${record.handle}`;
+      retry.setAttribute("aria-label", retry.title);
+      retry.addEventListener("click", async () => {
+        retry.disabled = true;
+        try {
+          if (targetTab !== undefined) await chrome.tabs.sendMessage(targetTab,
+            { type: "xfh-recheck", handle: record.handle });
+          await readPage();
+        } catch { reason.textContent = "页面连接已失效，请刷新 X 页面"; }
+        finally { retry.disabled = false; }
+      });
+      row.append(reason, retry);
+    }
     records.append(row);
   }
   if (!records.children.length) {

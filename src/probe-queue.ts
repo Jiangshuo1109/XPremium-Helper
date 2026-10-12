@@ -1,13 +1,13 @@
-import { hasBlueBadge } from "./adapter";
 import type { Avatar } from "./model";
 
 export interface ProbeAttempt { count: number; after: number; prefetched?: boolean }
 
 /** Queue only mounted authors, preferring this screen and then the next one. */
-export function planProbes(avatars: Avatar[], viewer: string, height: number): Avatar[] {
-  const ranked = avatars.filter(avatar => avatar.handle !== viewer && hasBlueBadge(avatar))
+export function planProbes(avatars: Avatar[], viewer: string, height: number,
+  eligible: (avatar: Avatar) => boolean = () => true): Avatar[] {
+  const ranked = avatars.filter(avatar => avatar.handle !== viewer && eligible(avatar))
     .map(avatar => ({ avatar, rect: avatar.image.getBoundingClientRect() }))
-    .filter(({ rect }) => rect.width >= 28 && rect.bottom > 0)
+    .filter(({ rect }) => rect.width >= 28 && rect.bottom > 0 && rect.top < height * 2)
     .sort((a, b) => Math.max(0, a.rect.top - height) - Math.max(0, b.rect.top - height));
   const seen = new Set<string>();
   return ranked.filter(({ avatar }) => {
