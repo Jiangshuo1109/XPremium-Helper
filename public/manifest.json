@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "X 头像快捷关注（0.2.1 预览版）",
-  "version": "0.2.1",
+  "name": "X 头像快捷关注（0.2.2 预览版）",
+  "version": "0.2.2",
   "description": "核实蓝 V 与关注关系后显示快捷入口；支持群聊资料页操作、关系面板和 Enter 发送。",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*"
+  ],
   "background": {
     "service_worker": "worker.js"
   },
@@ -13,8 +18,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://x.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],

@@ -29,8 +29,7 @@
           <span><strong>禁忌の小姜</strong><small>@jiangza9 · X 主页</small></span>
         </a>
         <a class="github" href="https://github.com/Jiangshuo1109/XPremium-Helper" target="_blank" rel="noreferrer" title="打开 GitHub 项目">
-          <span class="github-icon" aria-hidden="true">◉</span>
-          <span>GitHub</span>
+          <img class="github-icon" src="github.svg" alt="GitHub">
         </a>
       </section>
       <section id="cooldown-card" class="cooldown-card" aria-labelledby="cooldown-title">
@@ -40,10 +39,11 @@
       </section>
       <section class="panel" aria-labelledby="panel-title">
         <div class="panel-head">
-          <h2 id="panel-title">当前页面</h2>
+          <h2 id="panel-title">当前页面 · 去重账号</h2>
           <button id="refresh" type="button" title="重新读取当前页面状态">刷新</button>
         </div>
         <p id="progress">正在读取识别进度</p>
+        <dl id="statistics" aria-label="当前页面去重账号统计"></dl>
         <input id="search" type="search" placeholder="搜索账号" aria-label="搜索账号">
         <select id="filter" aria-label="关系筛选">
           <option value="all">全部关系</option>
@@ -55,7 +55,11 @@
         </select>
         <ul id="records" aria-live="polite"></ul>
       </section>
-      <footer>反馈问题或查看更新，请点击上方 X 或 GitHub 入口</footer>
+      <footer class="updates">
+        <span id="update-status" role="status">正在检查版本</span>
+        <button id="check-update" type="button">检查更新</button>
+        <a id="download-update" hidden href="https://github.com/Jiangshuo1109/XPremium-Helper/releases" target="_blank" rel="noreferrer">下载新版</a>
+      </footer>
     </main>
     <script src="popup.js"></script>
   </body>

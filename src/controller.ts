@@ -195,7 +195,12 @@ export class Controller {
     const chatSeen = new Set<string>();
     const avatars = collectAvatars(this.doc, this.win.location.pathname);
     const facts = collectRelationFacts(avatars, evidence);
-    for (const [handle, fact] of facts) this.relations.set(handle, fact);
+    for (const avatar of avatars) {
+      const fact = facts.get(avatar.handle);
+      this.relations.set(avatar.handle, fact ? { ...fact, blue: hasBlueBadge(avatar) ? true : fact.blue }
+        : { handle: avatar.handle, relationship: "unknown", followsYou: null,
+          blue: hasBlueBadge(avatar) ? true : null, source: "page", observedAt: Date.now() });
+    }
     for (const handle of [...this.relations.keys()]) {
       if (!avatars.some(avatar => avatar.handle === handle)) this.relations.delete(handle);
     }
@@ -303,14 +308,14 @@ export class Controller {
 
   private publishState(): void {
     if (!this.onState) return;
-    const records = [...this.relations.values()].map(relation => ({
+    const records = [...this.relations.values()].filter(relation => relation.handle !== this.viewer).map(relation => ({
       handle: relation.handle, relationship: relation.relationship,
       followsYou: relation.followsYou, blue: relation.blue,
       source: relation.source, observedAt: relation.observedAt,
     }));
     this.onState({
-      viewer: this.viewer, route: this.route, discovered: this.relations.size,
-      verified: [...this.relations.values()].filter(item => item.source === "native-card").length,
+      viewer: this.viewer, route: this.route, discovered: records.length,
+      verified: records.filter(item => item.source === "native-card").length,
       pending: this.pending.size, failed: [...this.attempted.values()].filter(item => item.count > 0).length,
       paused: Date.now() < this.resumeAt, records, updatedAt: Date.now(),
     });

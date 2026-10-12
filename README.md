@@ -1,5 +1,7 @@
 # XPremium Helper · X 头像快捷关注
 
+0.2.2 新增当前标签页九项去重关系统计、GitHub 标志入口和统一冷却字号。打开弹窗自动检查公开 GitHub 版本，六小时缓存，支持手动检查。新增 `https://api.github.com/*` 主机权限仅用于查询版本，不发送账号或关系数据。开发者模式仍需下载并手动重新加载，不会自动安装。统计不是全账号粉丝总量或操作次数。
+
 [简体中文](README.md) · [English](README.en.md) · [Español](README.es.md) · [日本語](README.ja.md) · [Português (Brasil)](README.pt-BR.md)
 
 [![CI](https://github.com/Jiangshuo1109/XPremium-Helper/actions/workflows/ci.yml/badge.svg)](https://github.com/Jiangshuo1109/XPremium-Helper/actions/workflows/ci.yml)
@@ -8,7 +10,7 @@
 
 Chrome / Edge 扩展。在 X 页面核实账号关系后，把「关注」「回关」或需要确认的「取关」入口放到头像下方；互关账号显示「蓝朋友」。每次关系操作都由你点击，并交给 X 原生控件执行。
 
-**当前版本：0.2.1 预览版。** 本项目与 X Corp. 无隶属关系，不提供或解锁 X Premium，不保证账号增长或平台操作成功。群聊关系读取尚未完成实站验收，不能理解为所有群聊已可用。文档提供五种语言；扩展界面为中文，目前主要识别中文和英文 X 控件。
+**当前版本：0.2.2 预览版。** 本项目与 X Corp. 无隶属关系，不提供或解锁 X Premium，不保证账号增长或平台操作成功。群聊关系读取尚未完成实站验收，不能理解为所有群聊已可用。文档提供五种语言；扩展界面为中文，目前主要识别中文和英文 X 控件。
 
 [下载预览包](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [反馈问题](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [版本记录](CHANGELOG.md)
 

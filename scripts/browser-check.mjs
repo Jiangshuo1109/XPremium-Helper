@@ -37,6 +37,9 @@ for (const target of targets) {
     await context.route("**/*", route => {
       const url = new URL(route.request().url());
       if (url.protocol === "chrome-extension:") return route.continue();
+      if (url.hostname === "api.github.com") return route.fulfill({
+        contentType: "application/json", body: JSON.stringify([{ draft: false, tag_name: "v99.0.0-preview" }]),
+      });
       if (url.origin === "https://x.com") return route.fulfill({ contentType: "text/html", body: fixture(true) });
       return route.abort();
     });
@@ -212,6 +215,7 @@ for (const target of targets) {
     const id = createHash("sha256").update(extension).digest("hex").slice(0, 32)
       .split("").map(char => String.fromCharCode(97 + parseInt(char, 16))).join("");
     const popup = await context.newPage();
+    await page.bringToFront();
     await popup.goto(`chrome-extension://${id}/popup.html`);
     await popup.locator("#enabled:not([disabled])").waitFor();
     assert.equal(await popup.locator("#enabled").isChecked(), true);
@@ -240,6 +244,10 @@ for (const target of targets) {
     assert.equal(await popup.locator(".creator-profile").getAttribute("href"), "https://x.com/jiangza9");
     assert.equal(await popup.locator(".github").getAttribute("href"),
       "https://github.com/Jiangshuo1109/XPremium-Helper");
+    assert.equal(await popup.locator(".github img").evaluate(image => image.naturalWidth > 0), true);
+    await popup.locator("#download-update").waitFor({ state: "visible" });
+    assert.equal(await popup.locator("#statistics dd").count(), 9);
+    assert.equal(await popup.locator("#cooldown").evaluate(node => getComputedStyle(node).fontSize), "13px");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup.png` });
     await popup.locator("#filter").selectOption("mutual");
     assert.equal(await popup.locator("#records li").count(), 1);

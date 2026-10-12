@@ -15,6 +15,13 @@ if (!window.__xfhStarted && window === window.top) {
   let controller: Controller | null = null;
   let reply: ReplyShortcut | null = null;
   let revision = 0;
+  let latestState: PageState | null = null;
+  chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+    if (message?.type === "xfh-page-state") {
+      controller?.scan();
+      respond(latestState);
+    }
+  });
   const changed = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
     if (area !== "local") return;
     if (changes.enabled) {
@@ -30,6 +37,7 @@ if (!window.__xfhStarted && window === window.top) {
   const start = () => {
     if (controller) return;
     const publishState = (state: PageState) => {
+      latestState = state;
       void chrome.storage.session.set({ xfhPageState: state }).then(() =>
         chrome.storage.local.remove("xfhPageStateFallback").catch(() => {}),
       ).catch(() =>

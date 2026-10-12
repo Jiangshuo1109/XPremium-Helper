@@ -1,4 +1,6 @@
-export {};
+import { summarize } from "./statistics";
+import { checkUpdate, newer } from "./updates";
+import type { PageState, PageStateRecord } from "./model";
 
 const enabled = document.querySelector<HTMLInputElement>("#enabled")!;
 const status = document.querySelector<HTMLElement>("#status")!;
@@ -9,20 +11,25 @@ const filter = document.querySelector<HTMLSelectElement>("#filter")!;
 const records = document.querySelector<HTMLElement>("#records")!;
 const refresh = document.querySelector<HTMLButtonElement>("#refresh")!;
 let cooldownUntil = 0;
-type PageRecord = {
-  handle: string; relationship: "unknown" | "not-following" | "following" | "requested";
-  followsYou: boolean | null; blue: boolean | null; source: string;
-};
-type PageState = {
-  discovered: number; verified: number; pending: number; failed: number; paused: boolean;
-  records: PageRecord[];
-};
-let pageState: PageState = { discovered: 0, verified: 0, pending: 0, failed: 0, paused: false, records: [] };
+type PageRecord = PageStateRecord;
+const emptyState: PageState = { viewer: null, route: "", updatedAt: 0,
+  discovered: 0, verified: 0, pending: 0, failed: 0, paused: false, records: [] };
+let pageState = emptyState;
+let targetTab: number | undefined;
+
+async function readPage(): Promise<void> {
+  try {
+    targetTab ??= (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
+    pageState = targetTab === undefined ? emptyState
+      : await chrome.tabs.sendMessage(targetTab, { type: "xfh-page-state" }) ?? emptyState;
+  } catch { pageState = emptyState; }
+  renderPanel();
+}
 
 function renderCooldown(): void {
   const seconds = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
   if (seconds <= 0) {
-    cooldown.textContent = "回关 CD 已结束，可以继续操作";
+    cooldown.textContent = cooldownUntil ? "冷却已结束" : "暂无冷却";
     return;
   }
   const minutes = Math.floor(seconds / 60);
@@ -32,13 +39,7 @@ function renderCooldown(): void {
 async function load(): Promise<void> {
   try {
     const data = await chrome.storage.local.get(["enabled", "cooldownUntil"]);
-    try {
-      const session = await chrome.storage.session.get("xfhPageState");
-      if (session.xfhPageState) pageState = session.xfhPageState as PageState;
-    } catch {
-      const fallback = await chrome.storage.local.get("xfhPageStateFallback");
-      if (fallback.xfhPageStateFallback) pageState = fallback.xfhPageStateFallback as PageState;
-    }
+    await readPage();
     enabled.checked = data.enabled !== false;
     cooldownUntil = typeof data.cooldownUntil === "number" ? data.cooldownUntil : 0;
     renderCooldown();
@@ -71,6 +72,20 @@ function matches(record: PageRecord): boolean {
 }
 
 function renderPanel(): void {
+  const counts = summarize(pageState.records, pageState.viewer);
+  const statistics = document.querySelector("#statistics")!;
+  statistics.replaceChildren();
+  const dimensions: Array<[string, number]> = [
+    ["识别账号", counts.total], ["已关注", counts.following], ["关注你", counts.followers],
+    ["待回关", counts.followBack], ["互关", counts.mutual], ["明确未回关", counts.unilateral],
+    ["关系待确认", counts.unknown], ["请求已发送", counts.requested], ["已识别蓝 V", counts.blue],
+  ];
+  for (const [label, count] of dimensions) {
+    const group = document.createElement("div"), title = document.createElement("dt"),
+      value = document.createElement("dd");
+    title.textContent = label; value.textContent = String(count);
+    group.append(title, value); statistics.append(group);
+  }
   progress.textContent = `已发现 ${pageState.discovered} · 已确认 ${pageState.verified} · 待处理 ${pageState.pending}`
     + (pageState.failed ? ` · 失败 ${pageState.failed}` : "")
     + (pageState.paused ? " · 用户操作中" : "");
@@ -110,22 +125,30 @@ chrome.storage.onChanged.addListener((changes, area) => {
     cooldownUntil = typeof changes.cooldownUntil.newValue === "number" ? changes.cooldownUntil.newValue : 0;
     renderCooldown();
   }
-  if (area === "session" && changes.xfhPageState) {
-    pageState = changes.xfhPageState.newValue as PageState ?? pageState;
-    renderPanel();
-  }
 });
 search.addEventListener("input", renderPanel);
 filter.addEventListener("change", renderPanel);
-refresh.addEventListener("click", async () => {
+refresh.addEventListener("click", () => void readPage());
+const updateButton = document.querySelector<HTMLButtonElement>("#check-update")!;
+async function renderUpdate(force = false): Promise<void> {
+  updateButton.disabled = true;
+  const text = document.querySelector("#update-status")!;
+  text.textContent = "正在检查版本";
+  const link = document.querySelector<HTMLElement>("#download-update")!;
+  link.hidden = true;
   try {
-    const session = await chrome.storage.session.get("xfhPageState");
-    if (session.xfhPageState) pageState = session.xfhPageState as PageState;
-  } catch {
-    const fallback = await chrome.storage.local.get("xfhPageStateFallback");
-    if (fallback.xfhPageStateFallback) pageState = fallback.xfhPageStateFallback as PageState;
-  }
-  renderPanel();
-});
+    const result = await checkUpdate(force);
+    const available = result.version && newer(result.version, chrome.runtime.getManifest().version);
+    text.textContent = result.error ?? (available ? `发现新版 ${result.version}`
+      : result.version ? "当前已是最新发布版本" : "暂无公开版本");
+    link.hidden = !available;
+    text.setAttribute("title", `检查时间：${new Date(result.checkedAt).toLocaleString()}；下载后需手动重新加载扩展`);
+  } catch { text.textContent = "检查失败，请稍后重试"; }
+  finally { updateButton.disabled = false; }
+}
+document.querySelector(".version")!.textContent = chrome.runtime.getManifest().version;
+updateButton.addEventListener("click", () => void renderUpdate(true));
+setInterval(() => void readPage(), 2000);
 setInterval(renderCooldown, 1000);
 void load();
+void renderUpdate();
