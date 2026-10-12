@@ -1,0 +1,43 @@
+name: 缺陷反馈 / Bug report
+description: 用脱敏样例说明问题 / Report with sanitized evidence
+title: "[Bug] "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 扩展与浏览器版本 / Extension and browser versions
+      placeholder: "0.2.1 / Chrome / OS"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: 页面 / Page
+      options:
+        - 首页 / Home
+        - 帖子与回复 / Post and replies
+        - 关注列表 / Follow lists
+        - 群聊 / Group chat
+        - 扩展弹窗 / Popup
+        - 安装或构建 / Install or build
+        - 其他 / Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤、预期与实际结果 / Steps, expected and actual behavior
+      description: 请使用虚构账号，不附真实聊天或凭据。Use fictional accounts, no private chats or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 脱敏截图或日志 / Sanitized screenshots or logs
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 隐私检查 / Privacy
+      options:
+        - label: 已移除真实聊天、私人账号列表、凭据与个人路径 / Removed private data and credentials
+          required: true

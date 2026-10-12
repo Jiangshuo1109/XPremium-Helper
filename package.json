@@ -1,0 +1,39 @@
+{
+  "name": "xpremium-helper",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "description": "X 头像快捷关注扩展，本地原生控件适配预览版",
+  "license": "MIT",
+  "author": "禁忌の小姜 (@jiangza9)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jiangshuo1109/XPremium-Helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jiangshuo1109/XPremium-Helper/issues"
+  },
+  "homepage": "https://github.com/Jiangshuo1109/XPremium-Helper#readme",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser-check.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "package": "npm run check && node scripts/package.mjs",
+    "version": "node scripts/sync-version.mjs",
+    "check:release": "node scripts/check-release.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.0.0",
+    "playwright": "^1.58.0",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.11"
+  }
+}

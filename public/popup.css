@@ -1,0 +1,37 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, "Microsoft YaHei", sans-serif;
+  color: #24292e;
+  background: #fff;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+body { margin: 0; width: 256px; }
+main { padding: 18px; }
+h1 { font-size: 16px; line-height: 24px; margin: 0 0 18px; font-weight: 600; }
+.setting { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
+input { appearance: none; width: 36px; height: 22px; border-radius: 12px; background: #858b92; margin: 0; cursor: pointer; position: relative; }
+input::after { content: ""; position: absolute; background: white; width: 16px; height: 16px; border-radius: 50%; top: 3px; left: 3px; }
+input:checked { background: #087b59; }
+input:checked::after { left: 17px; }
+input:disabled { cursor: wait; opacity: .55; }
+input:focus-visible { outline: 2px solid #0f73b8; outline-offset: 3px; }
+p { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: #616870; min-height: 18px; }
+#cooldown { margin-top: 6px; }
+.panel { margin-top: 16px; border-top: 1px solid #d9dddf; padding-top: 12px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h2 { font-size: 13px; margin: 0; font-weight: 600; }
+#refresh { border: 1px solid #aeb6bb; border-radius: 4px; background: transparent; color: inherit; padding: 3px 7px; cursor: pointer; }
+#progress { margin-top: 5px; }
+#search, #filter { width: 100%; min-height: 28px; margin-top: 8px; border: 1px solid #aeb6bb; border-radius: 4px; background: inherit; color: inherit; padding: 4px 6px; }
+#records { list-style: none; padding: 0; margin: 8px 0 0; max-height: 148px; overflow: auto; }
+#records li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #eceeef; }
+#records li span:last-child { color: #687178; white-space: nowrap; }
+footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid #d9dddf; font-size: 11px; }
+footer a { color: #0878bd; text-decoration: none; }
+@media (prefers-color-scheme: dark) {
+  :root { color: #ededed; background: #17191b; }
+  p { color: #b2b7bd; }
+  .panel, footer { border-color: #3b4144; }
+  #records li { border-color: #3b4144; }
+}

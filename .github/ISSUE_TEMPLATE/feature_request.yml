@@ -1,0 +1,17 @@
+name: 功能建议 / Feature request
+description: 说明具体场景与预期行为 / Describe the use case
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 当前问题 / Problem
+      description: 谁在什么页面做什么事情时遇到困难？Who is affected and on which page?
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 期望行为与限制 / Expected behavior and constraints
+    validations:
+      required: true

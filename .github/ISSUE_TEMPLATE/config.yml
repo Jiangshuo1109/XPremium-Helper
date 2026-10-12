@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 安全问题 / Security reporting
+    url: https://github.com/Jiangshuo1109/XPremium-Helper/blob/main/SECURITY.md
+    about: 请勿公开漏洞利用细节或私人数据 / Do not post exploit details or private data publicly
+  - name: 禁忌の小姜 @jiangza9
+    url: https://x.com/jiangza9
+    about: 作者更新与开发记录 / Author updates

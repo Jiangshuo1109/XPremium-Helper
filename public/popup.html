@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>X 头像快捷关注</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>头像快捷关注</h1>
+      <label class="setting">
+        <span>启用</span>
+        <input id="enabled" type="checkbox" role="switch" disabled>
+      </label>
+      <p id="status" role="status" aria-live="polite">正在读取设置</p>
+      <p id="cooldown" role="status" aria-live="polite">正在读取回关状态</p>
+      <section class="panel" aria-labelledby="panel-title">
+        <div class="panel-head">
+          <h2 id="panel-title">当前页面</h2>
+          <button id="refresh" type="button" title="重新读取当前页面状态">刷新</button>
+        </div>
+        <p id="progress">正在读取识别进度</p>
+        <input id="search" type="search" placeholder="搜索账号" aria-label="搜索账号">
+        <select id="filter" aria-label="关系筛选">
+          <option value="all">全部关系</option>
+          <option value="can-follow">可关注</option>
+          <option value="follow-back">待回关</option>
+          <option value="mutual">蓝朋友</option>
+          <option value="unfollow">可取关</option>
+          <option value="unknown">待确认</option>
+        </select>
+        <ul id="records" aria-live="polite"></ul>
+      </section>
+      <footer><a href="https://x.com/jiangza9" target="_blank" rel="noreferrer">关注禁忌の小姜 @jiangza9 · 更新与反馈</a></footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
