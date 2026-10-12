@@ -38,7 +38,14 @@ for (const target of targets) {
       const url = new URL(route.request().url());
       if (url.protocol === "chrome-extension:") return route.continue();
       if (url.hostname === "api.github.com") return route.fulfill({
-        contentType: "application/json", body: JSON.stringify([{ draft: false, tag_name: "v99.0.0-preview" }]),
+        status: 403, contentType: "application/json", body: JSON.stringify({ message: "rate limited" }),
+      });
+      if (url.href === "https://github.com/Jiangshuo1109/XPremium-Helper/releases.atom") return route.fulfill({
+        contentType: "application/atom+xml",
+        body: `<feed xmlns="http://www.w3.org/2005/Atom">
+          <link rel="self" href="https://github.com/Jiangshuo1109/XPremium-Helper/releases.atom"/>
+          <entry><link rel="alternate" href="https://github.com/Jiangshuo1109/XPremium-Helper/releases/tag/v99.0.0-preview"/></entry>
+        </feed>`,
       });
       if (url.origin === "https://x.com") return route.fulfill({ contentType: "text/html", body: fixture(true) });
       return route.abort();
@@ -246,6 +253,8 @@ for (const target of targets) {
       "https://github.com/Jiangshuo1109/XPremium-Helper");
     assert.equal(await popup.locator(".github img").evaluate(image => image.naturalWidth > 0), true);
     await popup.locator("#download-update").waitFor({ state: "visible" });
+    assert.ok((await popup.locator("#update-status").getAttribute("title")).includes("公开版本订阅"));
+    result.checks.push("rate-limited-api-release-feed-fallback");
     assert.equal(await popup.locator("#statistics dd").count(), 9);
     assert.equal(await popup.locator("#cooldown").evaluate(node => getComputedStyle(node).fontSize), "13px");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup.png` });

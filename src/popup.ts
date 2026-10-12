@@ -140,9 +140,11 @@ async function renderUpdate(force = false): Promise<void> {
     const result = await checkUpdate(force);
     const available = result.version && newer(result.version, chrome.runtime.getManifest().version);
     text.textContent = result.error ?? (available ? `发现新版 ${result.version}`
-      : result.version ? "当前已是最新发布版本" : "暂无公开版本");
+      : result.version ? newer(chrome.runtime.getManifest().version, result.version)
+        ? `本地版本领先；公开版本 ${result.version}` : "当前已是最新发布版本"
+        : "暂无公开版本");
     link.hidden = !available;
-    text.setAttribute("title", `检查时间：${new Date(result.checkedAt).toLocaleString()}；下载后需手动重新加载扩展`);
+    text.setAttribute("title", `检查时间：${new Date(result.checkedAt).toLocaleString()}；来源：${result.source === "feed" ? "GitHub 公开版本订阅" : "GitHub API"}；下载后需手动重新加载扩展`);
   } catch { text.textContent = "检查失败，请稍后重试"; }
   finally { updateButton.disabled = false; }
 }

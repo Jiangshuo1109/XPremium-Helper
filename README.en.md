@@ -6,7 +6,7 @@
 
 A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow actions below X avatars after checking account identity and relationship evidence. Mutual follows receive a noninteractive label. Relationship changes require your click and use X's native controls.
 
-**Version 0.2.2, preview.** Not affiliated with X Corp.; this extension does not provide or unlock X Premium. Real-world group-chat relationship detection is not yet validated. Documentation is available in five languages; the extension UI is Chinese, and native control recognition currently targets Chinese and English.
+**Version 0.2.3, preview.** Not affiliated with X Corp.; this extension does not provide or unlock X Premium. Real-world group-chat relationship detection is not yet validated. Documentation is available in five languages; the extension UI is Chinese, and native control recognition currently targets Chinese and English.
 
 [Download preview](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Report a bug](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Changelog](CHANGELOG.md)
 

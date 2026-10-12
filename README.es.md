@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.2.2, preliminar.** No está afiliada a X Corp. ni proporciona o desbloquea X Premium. La detección de relaciones en chats de grupo todavía no está validada en el sitio real. La documentación está disponible en cinco idiomas; la interfaz de la extensión está en chino y reconoce principalmente controles de X en chino e inglés.
+**Versión 0.2.3, preliminar.** No está afiliada a X Corp. ni proporciona o desbloquea X Premium. La detección de relaciones en chats de grupo todavía no está validada en el sitio real. La documentación está disponible en cinco idiomas; la interfaz de la extensión está en chino y reconoce principalmente controles de X en chino e inglés.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 
