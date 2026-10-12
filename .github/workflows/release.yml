@@ -48,7 +48,7 @@ jobs:
           gh release edit "$RELEASE_TAG" --notes-file release/NOTES.md --prerelease --draft=false
       - name: Save isolated browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-browser-evidence
           path: |
