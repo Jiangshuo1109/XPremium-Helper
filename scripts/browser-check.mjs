@@ -237,7 +237,9 @@ for (const target of targets) {
       [...document.querySelectorAll("#records li")].some(row =>
         row.textContent.includes("@carol") && row.textContent.includes("蓝朋友")));
     assert.equal(await popup.title(), "X 头像快捷关注");
-    assert.equal(await popup.locator("footer a").getAttribute("href"), "https://x.com/jiangza9");
+    assert.equal(await popup.locator(".creator-profile").getAttribute("href"), "https://x.com/jiangza9");
+    assert.equal(await popup.locator(".github").getAttribute("href"),
+      "https://github.com/Jiangshuo1109/XPremium-Helper");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup.png` });
     await popup.locator("#filter").selectOption("mutual");
     assert.equal(await popup.locator("#records li").count(), 1);

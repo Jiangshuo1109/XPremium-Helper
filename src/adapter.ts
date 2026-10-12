@@ -46,7 +46,6 @@ export function currentViewer(doc: Document): string | null {
 
 function cardHandle(card: Element): string | null {
   const handles = new Set([...card.querySelectorAll<HTMLAnchorElement>("a[href]")]
-    .filter(link => link.textContent?.trim().startsWith("@"))
     .map(link => handleFromHref(link.getAttribute("href"))).filter(Boolean));
   return handles.size === 1 ? [...handles][0]! : null;
 }
@@ -230,8 +229,12 @@ export function collectRelationFacts(
 }
 
 export function nativeAlerts(doc: Document): Map<Element, string> {
-  return new Map(pageQuery<HTMLElement>(doc, '[role="alert"], [data-testid="toast"]')
+  return new Map(pageQuery<HTMLElement>(doc, '[role="alert"], [role="status"], [data-testid="toast"], [data-testid="toastContainer"]')
     .filter(isVisible).map(node => [node, node.textContent?.trim() ?? ""]));
+}
+
+export function isRateLimitMessage(text: string): boolean {
+  return /(?:rate limit|too many requests|速度限制|受到速度限制|频繁操作|稍等片刻|try again later)/i.test(text);
 }
 
 /** Only count the badge attached to this author's name, never a quoted post's badge. */

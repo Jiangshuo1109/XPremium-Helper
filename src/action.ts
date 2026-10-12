@@ -1,4 +1,4 @@
-import { collectEvidence, currentViewer, isVisible, nativeAlerts, readControl } from "./adapter";
+import { collectEvidence, currentViewer, isRateLimitMessage, isVisible, nativeAlerts, readControl } from "./adapter";
 import { availableAction } from "./model";
 import type { Evidence, RelationshipAction } from "./model";
 
@@ -55,7 +55,7 @@ export async function performAction(options: ActionOptions): Promise<ActionResul
       for (const [node, text] of nativeAlerts(doc)) {
         if (before.get(node) !== text
           && /(?:unable|cannot|can't|limit|try again|went wrong|failed|无法|不能|失败|限制|稍后|出错)/i.test(text)) {
-          if (!rateLimitReported && /(?:rate limit|too many requests|速度限制|频繁|稍等片刻)/i.test(text)) {
+          if (!rateLimitReported && isRateLimitMessage(text)) {
             rateLimitReported = true;
             options.onRateLimited?.(text);
           }

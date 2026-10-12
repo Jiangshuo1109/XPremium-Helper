@@ -1,6 +1,6 @@
 import {
   collectAvatars, collectEvidence, collectRelationFacts, currentViewer, hasBlueBadge,
-  quarantineControls, supportedRoute,
+  isRateLimitMessage, nativeAlerts, quarantineControls, supportedRoute,
 } from "./adapter";
 import { performAction } from "./action";
 import { actionFromRelation, availableAction, buttonLabel, isMutual } from "./model";
@@ -39,6 +39,7 @@ export class Controller {
   private resumeAt = 0;
   private phases = new Map<string, string>();
   private cooldownUntil = 0;
+  private rateLimitSeen = new WeakSet<Element>();
   private relations = new Map<string, RelationFact>();
 
   constructor(
@@ -173,6 +174,7 @@ export class Controller {
     this.view ??= new View(this.doc);
     const conflicts = new Set<string>();
     const evidence = collectEvidence(this.doc, this.excluded, conflicts);
+    this.captureRateLimit();
     for (const handle of conflicts) {
       this.verified.delete(handle);
       this.relations.delete(handle);
@@ -249,6 +251,18 @@ export class Controller {
       });
     }
     this.publishState();
+  }
+
+  private captureRateLimit(): void {
+    if (cooldownActive(this.cooldownUntil)) return;
+    for (const [node, text] of nativeAlerts(this.doc)) {
+      if (this.rateLimitSeen.has(node) || !isRateLimitMessage(text)) continue;
+      this.rateLimitSeen.add(node);
+      const until = Date.now() + FOLLOW_COOLDOWN_MS;
+      this.setCooldownUntil(until);
+      this.onRateLimit?.(until);
+      break;
+    }
   }
 
   private relationLabel(relation: RelationFact): string {

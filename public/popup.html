@@ -8,13 +8,36 @@
   </head>
   <body>
     <main>
-      <h1>头像快捷关注</h1>
-      <label class="setting">
-        <span>启用</span>
-        <input id="enabled" type="checkbox" role="switch" disabled>
-      </label>
-      <p id="status" role="status" aria-live="polite">正在读取设置</p>
-      <p id="cooldown" role="status" aria-live="polite">正在读取回关状态</p>
+      <header class="brand">
+        <div class="brand-mark">X</div>
+        <div>
+          <h1>XPremium-Helper</h1>
+          <p>关系识别与快捷操作</p>
+        </div>
+        <label class="switch" title="启用或停用扩展">
+          <input id="enabled" type="checkbox" role="switch" disabled>
+          <span aria-hidden="true"></span>
+        </label>
+      </header>
+      <div class="status-line">
+        <span id="status" role="status" aria-live="polite">正在读取设置</span>
+        <span class="version">0.2.1</span>
+      </div>
+      <section class="creator" aria-label="作者联系入口">
+        <a class="creator-profile" href="https://x.com/jiangza9" target="_blank" rel="noreferrer">
+          <img src="jiangza9-avatar.jpg" alt="@jiangza9 的 X 头像">
+          <span><strong>禁忌の小姜</strong><small>@jiangza9 · X 主页</small></span>
+        </a>
+        <a class="github" href="https://github.com/Jiangshuo1109/XPremium-Helper" target="_blank" rel="noreferrer" title="打开 GitHub 项目">
+          <span class="github-icon" aria-hidden="true">◉</span>
+          <span>GitHub</span>
+        </a>
+      </section>
+      <section id="cooldown-card" class="cooldown-card" aria-labelledby="cooldown-title">
+        <div class="cooldown-head"><span id="cooldown-title">回关冷却</span><span class="cooldown-state">自动同步</span></div>
+        <strong id="cooldown">检查中</strong>
+        <p>检测到 X 速度限制后，30 分钟内暂停关注和回关。</p>
+      </section>
       <section class="panel" aria-labelledby="panel-title">
         <div class="panel-head">
           <h2 id="panel-title">当前页面</h2>
@@ -32,7 +55,7 @@
         </select>
         <ul id="records" aria-live="polite"></ul>
       </section>
-      <footer><a href="https://x.com/jiangza9" target="_blank" rel="noreferrer">关注禁忌の小姜 @jiangza9 · 更新与反馈</a></footer>
+      <footer>反馈问题或查看更新，请点击上方 X 或 GitHub 入口</footer>
     </main>
     <script src="popup.js"></script>
   </body>
