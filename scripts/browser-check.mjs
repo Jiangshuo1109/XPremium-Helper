@@ -256,6 +256,9 @@ for (const target of targets) {
     assert.ok((await popup.locator("#update-status").getAttribute("title")).includes("公开版本订阅"));
     result.checks.push("rate-limited-api-release-feed-fallback");
     assert.equal(await popup.locator("#statistics dd").count(), 9);
+    assert.equal(await popup.locator(".version").innerText(),
+      JSON.parse(await readFile("package.json", "utf8")).version);
+    assert.equal(await popup.locator(".creator-profile img").evaluate(image => image.naturalWidth > 0), true);
     assert.equal(await popup.locator("#cooldown").evaluate(node => getComputedStyle(node).fontSize), "13px");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup.png` });
     await popup.locator("#filter").selectOption("mutual");
@@ -269,6 +272,12 @@ for (const target of targets) {
     await popup.locator("#search").fill("no_such_fixture_user");
     assert.equal(await popup.locator("#records").innerText(), "当前页面暂无可显示的关系");
     result.checks.push("popup-identity-author-link-search-filter-and-empty-state");
+    await popup.locator("#search").fill("");
+    await popup.evaluate(() => chrome.storage.local.set({ cooldownUntil: Date.now() + 30 * 60 * 1000 }));
+    await popup.waitForFunction(() => document.querySelector("#cooldown").textContent.startsWith("回关 CD："));
+    await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup-cooldown.png` });
+    await popup.evaluate(() => chrome.storage.local.remove("cooldownUntil"));
+    result.checks.push("popup-active-cooldown-screenshot");
     result.status = "passed";
   } catch (error) {
     result.status = "not-passed";

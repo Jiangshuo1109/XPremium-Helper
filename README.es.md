@@ -16,7 +16,9 @@ Mantenida por **禁忌の小姜**. [Sigue a @jiangza9 en X](https://x.com/jiangz
 
 ## Funciones Y Capturas
 
-Las capturas muestran la extensión real en un navegador aislado con cuentas y publicaciones ficticias. No acreditan operaciones completadas en los servidores de X.
+Las capturas muestran la versión 0.2.3 con publicaciones y relaciones ficticias en un navegador aislado y el avatar del autor incluido en la extensión. No acreditan operaciones reales en X. La versión «99.0.0» y la espera activa son estados simulados, no una versión publicada ni una restricción real.
+
+<img src="docs/screenshots/popup.png" alt="Panel 0.2.3 con estadísticas y aviso simulado de actualización" width="360">
 
 ![Acciones junto al avatar y etiqueta de seguimiento mutuo](docs/screenshots/desktop-light.png)
 
@@ -25,7 +27,9 @@ Las capturas muestran la extensión real en un navegador aislado con cuentas y p
 | Acciones junto al avatar | Seguir y seguir de vuelta requieren una insignia azul reconocida y una relación conocida |
 | Seguimiento mutuo | La etiqueta «蓝朋友» solo aparece con evidencia explícita y no se puede pulsar |
 | Dejar de seguir | Si sigues a alguien sin relación mutua confirmada, se ofrece una acción con confirmación del usuario objetivo |
-| Panel de relaciones | Búsqueda por cuenta, filtros y progreso; muestra el último estado recibido, compartido entre pestañas |
+| Panel de relaciones | Búsqueda, filtros y progreso de la pestaña de X activa al abrir el panel |
+| Estadísticas | Nueve recuentos sin duplicados: identificadas, seguidas, te siguen, pendientes de seguir de vuelta, mutuas, explícitamente no te siguen, inciertas, solicitudes enviadas y con insignia azul; excluyen tu cuenta |
+| Actualizaciones y enlaces | Comprobación automática y manual; fuente pública de versiones si falla la API de GitHub; acceso a descarga, perfil del autor y repositorio |
 | Enter para publicar o responder | Envía desde un único editor; Shift+Enter añade un salto de línea; respeta la composición IME y la selección de menciones |
 | Lectura y espera | Hasta 20 comprobaciones en cola, caché de un minuto en memoria y gestión de espera de 30 minutos ante límites de velocidad |
 | Presentación | Temas claro y oscuro y ventanas estrechas de escritorio; no implica compatibilidad con extensiones en móviles |
@@ -35,11 +39,13 @@ Las capturas muestran la extensión real en un navegador aislado con cuentas y p
 
 ![Tema oscuro](docs/screenshots/desktop-dark.png)
 ![Confirmación antes de dejar de seguir](docs/screenshots/unfollow-confirm.png)
-![Panel de relaciones y enlace al autor](docs/screenshots/popup.png)
 ![Filtro de relaciones mutuas](docs/screenshots/popup-filtered.png)
+![Espera activa simulada](docs/screenshots/popup-cooldown.png)
 <img src="docs/screenshots/narrow-light.png" alt="Ventana de escritorio de 390 píxeles" width="390">
 
 </details>
+
+Los recuentos cubren cuentas identificadas en esta página, no todos tus seguidores ni acciones realizadas. Las categorías se solapan y no deben sumarse. La relación negativa requiere evidencia explícita; si falta, permanece incierta. La búsqueda y los filtros afectan a la lista, no a los totales.
 
 ## Instalación Y Actualización
 
@@ -49,7 +55,7 @@ Las capturas muestran la extensión real en un navegador aislado con cuentas y p
 4. Revisa los borradores pendientes antes de recargar las pestañas de X. Puedes activar o desactivar la extensión desde su panel.
 5. Para actualizar, sustituye los archivos de la misma carpeta, pulsa **Recargar** en el gestor de extensiones y recarga X.
 
-No hay distribución en tiendas ni actualizaciones automáticas. Compara el archivo con `SHA256SUMS` mediante `shasum -a 256 <archivo.zip>` en macOS o `Get-FileHash <archivo.zip> -Algorithm SHA256` en PowerShell.
+Al abrir el panel se consultan las versiones públicas. Los resultados correctos se guardan seis horas y los errores un minuto; la comprobación manual omite la caché. Una versión nueva muestra el enlace de descarga y los fallos muestran su causa. La instalación sigue siendo manual, sin distribución en tiendas. Compara `SHA256SUMS` mediante `shasum -a 256 <archivo.zip>` en macOS o `Get-FileHash <archivo.zip> -Algorithm SHA256` en PowerShell.
 
 Empieza con una cuenta de prueba. **Con la extensión activada, Enter envía publicaciones y respuestas desde un único editor.** Usa Shift+Enter para un salto de línea. Los mensajes privados, hilos con varios editores y publicaciones programadas conservan su comportamiento original.
 
@@ -59,15 +65,15 @@ Las acciones permanecen ocultas si faltan pruebas de identidad, relación o cont
 
 Hay adaptadores para inicio, detalle de publicaciones, respuestas y listas de seguidores y seguidos. Los chats de grupo requieren campos explícitos de relación aún pendientes de verificación real; las listas y cabeceras de mensajes privados siguen incompletas. La ausencia de «Te sigue» no demuestra que esa persona no te siga: compruébalo antes de confirmar.
 
-El panel puede mostrar datos de otra pestaña de X por compartir el último estado recibido. Un cambio visible no confirma el resultado definitivo del servidor. No se reintentan automáticamente acciones fallidas; no hay desplazamiento automático, seguimiento masivo, «Me gusta» automáticos ni envío de mensajes privados.
+El panel queda vinculado a la pestaña activa al abrirlo y consulta su estado cada dos segundos; también permite actualizarlo manualmente. Vuelve a abrirlo al cambiar de pestaña. Si no obtiene el estado, muestra una lista vacía. Un cambio visible no confirma el resultado definitivo del servidor. No se reintentan automáticamente acciones fallidas; no hay desplazamiento automático, seguimiento masivo, «Me gusta» automáticos ni envío de mensajes privados.
 
 Consulta el [registro de validación, en chino](docs/验证记录.md) para distinguir pruebas locales y comprobaciones pendientes en X.
 
 ## Permisos Y Privacidad
 
-Solo solicita `storage` e inyecta scripts en `https://x.com/*`. No necesita claves API, no incluye telemetría ni permiso de cookies y no usa un servidor propio. X recibe las acciones realizadas mediante sus controles nativos.
+Inyecta scripts solo en `https://x.com/*`. Solicita `storage` y acceso a `https://api.github.com/*` y `https://github.com/*` para consultar las versiones públicas del repositorio, sin credenciales de inicio de sesión ni datos de cuentas o relaciones de X. No necesita claves API, telemetría, permiso de cookies ni servidor propio. X recibe las acciones realizadas mediante sus controles nativos.
 
-La configuración y el final del periodo de espera se guardan localmente. Los resúmenes y tareas usan almacenamiento de sesión cuando está disponible; **si falla, recurren al almacenamiento local y pueden persistir tras reiniciar el navegador**. Consulta [Privacidad](PRIVACY.md).
+La configuración, la espera y la caché de versiones se guardan localmente. El panel lee la memoria de su pestaña directamente. La ruta de compatibilidad sigue guardando resúmenes y tareas en sesión; **si falla, recurre al almacenamiento local y puede persistir tras reiniciar el navegador**. Consulta [Privacidad](PRIVACY.md).
 
 ## Desarrollo
 

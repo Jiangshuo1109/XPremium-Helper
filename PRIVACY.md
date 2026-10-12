@@ -1,6 +1,6 @@
 # 隐私说明 / Privacy
 
-适用版本：0.2.1。更新日期：2026-10-12。
+适用版本：0.2.3。更新日期：2026-10-12。
 
 ## 读取什么
 
@@ -32,6 +32,8 @@
 
 The extension reads account identity, avatar/profile links, blue-badge evidence, relationships, and native controls on `https://x.com/*`. It has no telemetry, cookie access, private API calls, or backend. It does not maintain an archive of posts or DMs.
 
-Settings and cooldown deadlines persist in local storage. Relationship summaries (handles, relationship flags, badge evidence, source, and counts) and one-time profile tasks prefer session storage. If session access fails, they fall back to local storage and may survive a browser restart. Cleanup is conditional; a task's 30-second validity is not a guarantee of immediate physical deletion. Multiple X tabs currently share the last-reported summary.
+Settings, cooldown deadlines, and version-check results persist in local storage. The popup reads in-memory state from the tab active when it opened. Compatibility storage still saves relationship summaries (handles, relationship flags, badge evidence, source, and counts) and one-time profile tasks, preferring session storage. If session access fails, they fall back to local storage and may survive a browser restart. Cleanup is conditional; a task's 30-second validity is not a guarantee of immediate physical deletion.
+
+Version checks request this repository's public releases from `api.github.com`, falling back to its Atom feed on `github.com` if the API fails. Host permissions cover these two domains. Requests omit login credentials and X account, relationship, or chat data; GitHub still receives ordinary network information such as the IP address. Successful results are cached for six hours, failures for one minute, with manual checks bypassing the cache. Each source has an eight-second timeout. Updates are downloaded and installed manually.
 
 Disabling is not deletion. Remove the extension through browser settings to remove its stored data. There is no built-in “delete all data” button yet. Actions made through X controls still go to X. Following author or GitHub links visits those services. Do not attach private account data or credentials to public reports.
