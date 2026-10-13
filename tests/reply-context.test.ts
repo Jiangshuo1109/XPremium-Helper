@@ -53,3 +53,12 @@ it("does not borrow a background post for an empty reply dialog", () => {
   document.body.append(dialog);
   expect(readReplyContext(composer.querySelector<HTMLElement>("[contenteditable]")!)).toBeNull();
 });
+
+it("accepts an accessible reply label when the button has no visible text", () => {
+  history.replaceState(null, "", "/notifications");
+  const button = document.querySelector<HTMLButtonElement>("[data-testid=tweetButtonInline]")!;
+  button.textContent = "";
+  button.setAttribute("aria-label", "回复");
+  expect(readReplyContext(document.querySelector<HTMLElement>("[contenteditable]")!))
+    .toMatchObject({ handle: "alice" });
+});
