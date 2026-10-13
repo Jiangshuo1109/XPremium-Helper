@@ -1,6 +1,6 @@
 {
   "name": "xpremium-helper",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "description": "X 头像快捷关注扩展，本地原生控件适配预览版",

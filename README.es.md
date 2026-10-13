@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.3.1, preliminar.** Corrige la detección de respuestas rápidas en los diálogos de respuesta de notificaciones. Mantiene el panel, las plantillas locales y el endpoint opcional compatible con OpenAI Chat Completions. El texto generado solo se inserta como borrador y nunca se envía automáticamente. La detección de relaciones en chats de grupo aún no está validada en el sitio real.
+**Versión 0.3.2, preliminar.** Mejora los diálogos de respuesta de notificaciones: acepta etiquetas accesibles y exige una cuenta objetivo explícita para vincular la publicación. Mantiene el panel, las plantillas locales y el endpoint opcional compatible con OpenAI Chat Completions. El texto generado solo se inserta como borrador y nunca se envía automáticamente. La detección de relaciones en chats de grupo aún no está validada en el sitio real.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 

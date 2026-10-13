@@ -9,7 +9,8 @@ export function readReplyContext(editor: HTMLElement): ReplyContext | null {
   const path = doc.location.pathname;
   if (/^\/(?:messages|i\/chat|i\/grok)/.test(path)) return null;
   const button = replyButton(editor);
-  if (!isVisible(editor) || !button || !/^(Reply|回复|回覆|回復)$/i.test(button.textContent?.trim() ?? "")) return null;
+  const buttonLabel = button?.textContent?.trim() || button?.getAttribute("aria-label")?.trim() || "";
+  if (!isVisible(editor) || !button || !/^(?:Reply|回复|回覆|回復)$/i.test(buttonLabel)) return null;
   if ([...doc.querySelectorAll<HTMLElement>(EDITOR)].filter(isVisible).length !== 1) return null;
   if (doc.querySelector('[data-testid="scheduledConfirmation"], [data-testid="scheduleDatePicker"]')) return null;
   let region: HTMLElement | null = editor;
@@ -26,6 +27,26 @@ export function readReplyContext(editor: HTMLElement): ReplyContext | null {
     const preceding = [...(scope?.querySelectorAll<HTMLElement>('article[data-testid="tweet"]') ?? [])]
       .filter(node => Boolean(node.compareDocumentPosition(editor) & Node.DOCUMENT_POSITION_FOLLOWING));
     article = preceding.at(-1) ?? null;
+  }
+  if (!article) {
+    const scope = editor.closest('[role="dialog"]');
+    const referencedHandles = new Set(
+      [...(scope?.querySelectorAll<HTMLAnchorElement>('a[href]') ?? [])]
+        .map(link => handleFromHref(link.getAttribute("href")))
+        .filter((handle): handle is string => Boolean(handle)),
+    );
+    if (referencedHandles.size) {
+      const preceding = [...doc.querySelectorAll<HTMLElement>('article[data-testid="tweet"]')]
+        .filter(node => isVisible(node) &&
+          Boolean(node.compareDocumentPosition(editor) & Node.DOCUMENT_POSITION_FOLLOWING))
+        .filter(node => {
+          const handle = handleFromHref(
+            node.querySelector<HTMLAnchorElement>('[data-testid="User-Name"] a[href]')?.getAttribute("href") ?? null,
+          );
+          return Boolean(handle && referencedHandles.has(handle));
+        });
+      article = preceding.at(-1) ?? null;
+    }
   }
   const link = article?.querySelector<HTMLAnchorElement>('[data-testid="User-Name"] a[href]');
   const handle = handleFromHref(link?.getAttribute("href") ?? null);
