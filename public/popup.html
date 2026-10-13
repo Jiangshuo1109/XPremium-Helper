@@ -35,7 +35,7 @@
       <section id="cooldown-card" class="cooldown-card" aria-labelledby="cooldown-title">
         <div class="cooldown-head"><span id="cooldown-title">回关冷却</span><span class="cooldown-state">自动同步</span></div>
         <strong id="cooldown">检查中</strong>
-        <p>检测到 X 速度限制后，30 分钟内暂停关注和回关。</p>
+        <p>检测到 X 速度限制后建议冷却 30 分钟；实际恢复时间以 X 为准。</p>
       </section>
       <section class="panel" aria-labelledby="panel-title">
         <div class="panel-head">
@@ -54,6 +54,24 @@
           <option value="unknown">待确认</option>
         </select>
         <ul id="records" aria-live="polite"></ul>
+      </section>
+      <section class="panel reply-settings" aria-labelledby="reply-title">
+        <div class="panel-head"><h2 id="reply-title">快捷回复</h2><span class="setting-state">点击生成才请求</span></div>
+        <p>回复框聚焦后显示浮层；选择内容只插入草稿，不会自动发送。</p>
+        <label>接口地址<input id="model-base-url" type="url" placeholder="https://api.example.com/v1"></label>
+        <label>模型名称<input id="model-name" type="text" placeholder="gpt-4o-mini"></label>
+        <label>API Key<input id="model-key" type="password" placeholder="只保存在本机"></label>
+        <div class="settings-row">
+          <label>语言<select id="model-language"><option>中文</option><option>English</option></select></label>
+          <label>语气<select id="model-tone"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></label>
+        </div>
+        <div class="settings-actions"><button id="save-model" type="button">保存接口</button><button id="test-model" type="button">测试权限</button></div>
+        <span id="model-status" role="status" aria-live="polite"></span>
+        <details>
+          <summary>管理常用回复</summary>
+          <div id="preset-list"></div>
+          <div class="preset-form"><input id="preset-title" placeholder="名称"><textarea id="preset-text" rows="2" placeholder="支持 {name}、{handle}、{topic}"></textarea><select id="preset-category"><option value="interaction">互动</option><option value="thanks">感谢</option><option value="polite">礼貌</option></select><button id="add-preset" type="button">添加</button></div>
+        </details>
       </section>
       <footer class="updates">
         <span id="update-status" role="status">正在检查版本</span>

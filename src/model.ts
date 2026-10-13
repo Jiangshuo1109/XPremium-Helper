@@ -8,6 +8,7 @@ export interface Evidence {
   relationship: Exclude<Relationship, "unknown">;
   followsYou: boolean | null;
   control: HTMLElement;
+  blue?: boolean;
 }
 
 export interface RelationFact {
@@ -41,6 +42,8 @@ export interface PageState {
   paused: boolean;
   records: PageStateRecord[];
   updatedAt: number;
+  timings?: Record<string, number>;
+  diagnostic?: string;
 }
 
 export interface Avatar {

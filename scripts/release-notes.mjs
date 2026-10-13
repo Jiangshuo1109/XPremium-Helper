@@ -15,9 +15,9 @@ Download the Chrome or Edge ZIP, extract it, then use Developer mode > Load unpa
 
 ### 预览边界 / Preview status
 
-群聊关系读取尚未完成实站验收。演示与自动测试使用虚构账号；没有把本地测试当作 X 服务端验收。启用扩展后 Enter 会发送单编辑器中的帖子或回复。面板状态目前跨标签页共享；session 不可用时存在本地存储回退。
+快捷回复浮层、内置及自定义模板、模型草稿生成已加入预览版。模型只在用户点击后请求，结果只插入当前草稿，不自动发送；模型接口、API Key 和留言摘要只按隐私说明处理。群聊关系读取尚未完成实站验收。演示与自动测试使用虚构账号；没有把本地测试当作 X 服务端验收。启用扩展后 Enter 会发送单编辑器中的帖子或回复。面板状态目前跨标签页共享；session 不可用时存在本地存储回退。
 
-Group-chat relationships remain unverified on the live site. Automated tests use fictional fixtures, not live X operations. Enter submits single-composer posts/replies when enabled. Panel state is shared across tabs; local-storage fallback may retain data across restarts.
+The preview adds the reply-side shortcut panel, local templates, and user-triggered model drafts. Model output is inserted into the current draft only and is never sent automatically. Group-chat relationships remain unverified on the live site. Automated tests use fictional fixtures, not live X operations. Enter submits single-composer posts/replies when enabled. Panel state is shared across tabs; local-storage fallback may retain data across restarts.
 
 MIT · [文档 / Documentation](https://github.com/Jiangshuo1109/XPremium-Helper/tree/v${version}-preview)
 

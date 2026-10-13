@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>XPremium-Helper 快捷回复设计稿</title>
+<style>
+  :root{font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#192126;background:#f7f8f8}
+  body{margin:0;padding:32px}.frame{max-width:720px;margin:auto;background:#fff;border:1px solid #dce1e2;border-radius:10px;padding:24px}
+  h1{font-size:20px;margin:0}.muted{color:#68757b;font-size:12px}.post{margin-top:22px;padding:16px;border-bottom:1px solid #edf0f1}
+  .author{font-weight:700}.topic{margin:8px 0 18px}.editor{padding:12px;border:1px solid #1479b8;border-radius:7px;min-height:62px;color:#68757b}
+  .overlay{width:276px;margin:8px 0 0 auto;padding:10px;border:1px solid #cfd7d9;border-radius:8px;box-shadow:0 4px 18px #0002}
+  .row{display:flex;gap:6px;margin-top:8px}.pill,.item,button{border:1px solid #cfd7d9;border-radius:5px;padding:6px 8px;background:#f7f9f9}
+  .active,.primary{border-color:#1479b8;background:#1479b8;color:#fff}.items{display:grid;gap:5px;margin-top:8px}.item{text-align:left}.candidate{margin-top:8px;padding:8px;border-left:3px solid #1479b8;background:#f1f7fa}
+</style>
+<div class="frame">
+  <h1>XPremium-Helper · 快捷回复</h1>
+  <p class="muted">回复框旁显示，选中后只插入草稿。</p>
+  <div class="post"><div class="author">作者甲 · @alice</div><div class="topic">请问这个方法怎么使用？</div>
+    <div class="editor">可以先看说明文档，<span class="muted">光标在这里</span></div>
+    <div class="overlay"><strong>快捷回复</strong><span class="muted">　×</span>
+      <p class="muted">回复 @alice：请问这个方法怎么使用？</p>
+      <div class="row"><button class="pill active">互动</button><button class="pill">感谢</button><button class="pill">礼貌</button></div>
+      <div class="items"><button class="item">互动交流</button><button class="item">继续交流</button></div>
+      <div class="row"><button class="primary">生成回复</button><button>插入草稿</button></div>
+      <div class="candidate">可以先看说明文档，里面有完整步骤。</div>
+    </div>
+  </div>
+</div>

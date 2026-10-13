@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>XPremium-Helper 快捷回复全状态</title>
+<style>
+body{font:13px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#192126;background:#f7f8f8;margin:24px}
+main{max-width:980px;margin:auto;background:#fff;padding:24px;border:1px solid #dce1e2;border-radius:8px}
+section{margin:24px 0;border-top:1px solid #dce1e2;padding-top:14px}.state{display:inline-block;margin:5px;padding:12px;border:1px solid #cfd7d9;border-radius:6px;width:250px;vertical-align:top}
+.ok{border-left:4px solid #1479b8}.warn{border-left:4px solid #b27b16}.error{border-left:4px solid #b33a32}.muted{color:#68757b;font-size:12px}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #dce1e2;padding:7px;text-align:left}th{background:#f1f4f5}
+</style>
+<main><h1>XPremium-Helper v0.3 快捷回复全状态</h1><p class="muted">设计参考：浮层贴近回复框，沿用现有面板样式。</p>
+<section><h2>页面状态</h2>
+<div class="state ok"><b>正常</b><br>模板列表可用，生成按钮可点击。</div>
+<div class="state warn"><b>生成中</b><br>按钮禁用，显示“生成中…”，不重复请求。</div>
+<div class="state"><b>空态</b><br>没有自定义模板时仍显示内置模板。</div>
+<div class="state"><b>无匹配</b><br>当前编辑器不是单一回复框，浮层隐藏。</div>
+<div class="state error"><b>接口失败</b><br>分别提示 Key 无效、权限拒绝、限流、超时和格式错误。</div>
+<div class="state warn"><b>权限未授权</b><br>保存接口时申请对应域名权限，拒绝则不保存配置。</div>
+<div class="state error"><b>内容过长</b><br>留言上下文截断到 2000 字符，候选限制到 1000 字符。</div>
+<div class="state warn"><b>部分可用</b><br>内置模板可用，模型接口未配置或不可访问。</div>
+</section>
+<section><h2>Toast 规则</h2><p>成功提示 3 秒，错误提示 6 秒；同一时间最多显示 1 条，新的错误替换旧提示。模型候选不会自动发送。</p></section>
+<section><h2>交互行为规则</h2><table><tr><th>触发</th><th>用户操作</th><th>系统行为</th><th>反馈</th></tr>
+<tr><td>回复框可识别</td><td>点击或聚焦</td><td>读取当前帖子作者和正文</td><td>显示浮层</td></tr>
+<tr><td>模板</td><td>点击常用回复</td><td>替换本地变量，生成候选</td><td>显示候选和插入按钮</td></tr>
+<tr><td>模型</td><td>点击生成</td><td>向用户配置域名发送当前留言上下文</td><td>加载状态；成功显示候选</td></tr>
+<tr><td>草稿</td><td>点击插入</td><td>写入当前编辑器，不点击原生回复按钮</td><td>浮层关闭，保留 X 草稿</td></tr>
+<tr><td>发送</td><td>按 Enter</td><td>交给现有 Enter 快捷发送逻辑</td><td>由 X 原生控件反馈</td></tr>
+<tr><td>换行</td><td>按 Shift+Enter</td><td>不触发发送</td><td>保留换行</td></tr>
+<tr><td>权限</td><td>保存接口</td><td>申请单一接口域名权限</td><td>拒绝则提示未授权</td></tr>
+<tr><td>页面变化</td><td>切换帖子或刷新</td><td>清空模型候选和浮层</td><td>重新识别当前编辑器</td></tr>
+</table></section></main>

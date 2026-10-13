@@ -85,7 +85,8 @@ export function readControl(control: HTMLElement): Evidence | null {
       followsYou = false;
     }
   }
-  return { handle, nativeId: control.dataset.testid!.split("-")[0], relationship, followsYou, control };
+  const blue = card && scopeHandle === handle ? blueBadgeIn(card) : false;
+  return { handle, nativeId: control.dataset.testid!.split("-")[0], relationship, followsYou, control, blue };
 }
 
 export function collectEvidence(doc: Document, excluded?: WeakSet<HTMLElement>,
@@ -113,14 +114,14 @@ export function quarantineControls(doc: Document, excluded: WeakSet<HTMLElement>
 
 export function supportedRoute(pathname: string): boolean {
   return pathname === "/home" || /^\/[A-Za-z0-9_]{1,15}\/status\/\d+\/?$/.test(pathname)
-    || /^\/[A-Za-z0-9_]{1,15}\/(?:followers|following)\/?$/.test(pathname)
+    || /^\/[A-Za-z0-9_]{1,15}\/(?:followers|verified_followers|following)\/?$/.test(pathname)
     || /^\/(?:messages|i\/chat)(?:\/|$)/.test(pathname);
 }
 
 export function collectAvatars(doc: Document, pathname: string): Avatar[] {
   if (!supportedRoute(pathname)) return [];
   const chat = /^\/(?:messages|i\/chat)(?:\/|$)/.test(pathname);
-  const profileList = /^\/[A-Za-z0-9_]{1,15}\/(?:followers|following)\/?$/.test(pathname);
+  const profileList = /^\/[A-Za-z0-9_]{1,15}\/(?:followers|verified_followers|following)\/?$/.test(pathname);
   const selector = chat
     ? '[data-testid="conversation"], [data-testid="DM_Conversation_Header"]'
     : 'article[data-testid="tweet"]';
@@ -234,10 +235,20 @@ export function nativeAlerts(doc: Document): Map<Element, string> {
 }
 
 export function isRateLimitMessage(text: string): boolean {
-  return /(?:rate limit|too many requests|速度限制|受到速度限制|频繁操作|稍等片刻|try again later)/i.test(text);
+  if (/(?:发帖|帖子|私信|消息|搜索|posts?|tweets?|messages?|search).*(?:limit|限制|上限)/i.test(text)) return false;
+  return /(?:rate.?limit(?:ed| exceeded)?|too many requests|速度限制|操作过于频繁|关注.{0,12}(?:限制|上限)|follow.{0,20}limit)/i.test(text);
 }
 
 /** Only count the badge attached to this author's name, never a quoted post's badge. */
+function blueBadgeIn(scope: Element): boolean {
+  return [...scope.querySelectorAll<SVGElement>('svg[data-testid="icon-verified"]')]
+    .some(badge => {
+      const style = getComputedStyle(badge);
+      const color = style.fill.toLowerCase() === "currentcolor" || !style.fill ? style.color : style.fill;
+      return /^rgba?\(\s*29,\s*155,\s*240\s*(?:,\s*1(?:\.0+)?\s*)?\)$/.test(color);
+    });
+}
+
 export function hasBlueBadge(avatar: Avatar): boolean {
   for (const name of avatar.region.querySelectorAll<HTMLElement>('[data-testid="User-Name"]')) {
     const article = name.closest('article[data-testid="tweet"]');

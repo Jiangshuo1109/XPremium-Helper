@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.2.3, preliminar.** No está afiliada a X Corp. ni proporciona o desbloquea X Premium. La detección de relaciones en chats de grupo todavía no está validada en el sitio real. La documentación está disponible en cinco idiomas; la interfaz de la extensión está en chino y reconoce principalmente controles de X en chino e inglés.
+**Versión 0.3.1, preliminar.** Corrige la detección de respuestas rápidas en los diálogos de respuesta de notificaciones. Mantiene el panel, las plantillas locales y el endpoint opcional compatible con OpenAI Chat Completions. El texto generado solo se inserta como borrador y nunca se envía automáticamente. La detección de relaciones en chats de grupo aún no está validada en el sitio real.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 
@@ -16,9 +16,9 @@ Mantenida por **禁忌の小姜**. [Sigue a @jiangza9 en X](https://x.com/jiangz
 
 ## Funciones Y Capturas
 
-Las capturas muestran la versión 0.2.3 con publicaciones y relaciones ficticias en un navegador aislado y el avatar del autor incluido en la extensión. No acreditan operaciones reales en X. La versión «99.0.0» y la espera activa son estados simulados, no una versión publicada ni una restricción real.
+Las capturas muestran publicaciones y relaciones ficticias en un navegador aislado. No acreditan operaciones reales en X.
 
-<img src="docs/screenshots/popup.png" alt="Panel 0.2.3 con estadísticas y aviso simulado de actualización" width="360">
+<img src="docs/screenshots/popup.png" alt="Panel XPremium-Helper" width="360">
 
 ![Acciones junto al avatar y etiqueta de seguimiento mutuo](docs/screenshots/desktop-light.png)
 

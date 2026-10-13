@@ -1,6 +1,6 @@
 import {
   collectAvatars, collectEvidence, collectRelationFacts, currentViewer, hasBlueBadge,
-  isRateLimitMessage, nativeAlerts, quarantineControls, supportedRoute,
+  quarantineControls, supportedRoute,
 } from "./adapter";
 import { performAction } from "./action";
 import { actionFromRelation, availableAction, buttonLabel, isMutual } from "./model";
@@ -39,8 +39,9 @@ export class Controller {
   private resumeAt = 0;
   private phases = new Map<string, string>();
   private cooldownUntil = 0;
-  private rateLimitSeen = new WeakSet<Element>();
   private relations = new Map<string, RelationFact>();
+  private errors = new Map<string, string>();
+  private timings: Record<string, number> = {};
 
   constructor(
     private doc: Document,
@@ -101,8 +102,7 @@ export class Controller {
   }
 
   setCooldownUntil(until: number): void {
-    this.cooldownUntil = Number.isFinite(until) ? until : 0;
-    if (cooldownActive(this.cooldownUntil)) this.view?.showCooldown(this.cooldownUntil);
+    this.cooldownUntil = Math.max(this.cooldownUntil, Number.isFinite(until) ? until : 0);
   }
 
   private reset(keepRelationships = false): void {
@@ -115,6 +115,7 @@ export class Controller {
     if (!keepRelationships) this.verified.clear();
     if (!keepRelationships) this.relations.clear();
     this.attempted.clear();
+    this.errors.clear();
     this.queue = [];
     this.resumeAt = 0;
     for (const item of this.buttons.values()) this.view?.remove(item);
@@ -153,9 +154,11 @@ export class Controller {
   }
 
   scan(): void {
+    const started = performance.now();
     if (!this.enabled || this.stopped || this.doc.hidden) return;
     this.observeRoots();
     const viewer = currentViewer(this.doc);
+    this.timings.identity = performance.now() - started;
     const route = this.win.location.href;
     if (viewer !== this.viewer || route !== this.route) {
       if (viewer !== this.viewer && this.previouslyIdentified) {
@@ -174,7 +177,6 @@ export class Controller {
     this.view ??= new View(this.doc);
     const conflicts = new Set<string>();
     const evidence = collectEvidence(this.doc, this.excluded, conflicts);
-    this.captureRateLimit();
     for (const handle of conflicts) {
       this.verified.delete(handle);
       this.relations.delete(handle);
@@ -194,17 +196,23 @@ export class Controller {
     const keep = new Set<HTMLAnchorElement>();
     const chatSeen = new Set<string>();
     const avatars = collectAvatars(this.doc, this.win.location.pathname);
+    this.timings.discovery = performance.now() - started - this.timings.identity;
+    const badgeStart = performance.now();
     const facts = collectRelationFacts(avatars, evidence);
     for (const avatar of avatars) {
       const fact = facts.get(avatar.handle);
-      this.relations.set(avatar.handle, fact ? { ...fact, blue: hasBlueBadge(avatar) ? true : fact.blue }
+      this.relations.set(avatar.handle, fact ? { ...fact, blue: hasBlueBadge(avatar) || evidence.get(avatar.handle)?.blue ? true : fact.blue }
         : { handle: avatar.handle, relationship: "unknown", followsYou: null,
           blue: hasBlueBadge(avatar) ? true : null, source: "page", observedAt: Date.now() });
     }
     for (const handle of [...this.relations.keys()]) {
       if (!avatars.some(avatar => avatar.handle === handle)) this.relations.delete(handle);
     }
-    this.queue = planProbes(avatars, viewer, this.win.innerHeight);
+    this.timings.badges = performance.now() - badgeStart;
+    this.queue = planProbes(avatars, viewer, this.win.innerHeight,
+      avatar => !this.verified.has(avatar.handle)
+        && (this.attempted.get(avatar.handle)?.count ?? 0) < 2);
+    const renderStart = performance.now();
     for (const avatar of avatars) {
       const proof = evidence.get(avatar.handle);
       const relation = this.relations.get(avatar.handle);
@@ -240,6 +248,7 @@ export class Controller {
       this.view.update(item, friend ? "蓝朋友" : relation ? this.relationLabel(relation) : proof ? buttonLabel(proof) : "关注",
         busy, this.phases.get(avatar.handle));
     }
+    this.timings.render = performance.now() - renderStart;
     for (const [anchor, item] of this.buttons) {
       if (!keep.has(anchor)) {
         this.view.remove(item);
@@ -256,18 +265,6 @@ export class Controller {
       });
     }
     this.publishState();
-  }
-
-  private captureRateLimit(): void {
-    if (cooldownActive(this.cooldownUntil)) return;
-    for (const [node, text] of nativeAlerts(this.doc)) {
-      if (this.rateLimitSeen.has(node) || !isRateLimitMessage(text)) continue;
-      this.rateLimitSeen.add(node);
-      const until = Date.now() + FOLLOW_COOLDOWN_MS;
-      this.setCooldownUntil(until);
-      this.onRateLimit?.(until);
-      break;
-    }
   }
 
   private relationLabel(relation: RelationFact): string {
@@ -312,13 +309,26 @@ export class Controller {
       handle: relation.handle, relationship: relation.relationship,
       followsYou: relation.followsYou, blue: relation.blue,
       source: relation.source, observedAt: relation.observedAt,
+      error: this.errors.get(relation.handle)
+        ?? (relation.blue === null ? "蓝 V 待确认" : relation.relationship === "unknown" ? "关系未知"
+          : !relation.control?.isConnected ? "缺少当前可执行控件" : undefined),
     }));
     this.onState({
       viewer: this.viewer, route: this.route, discovered: records.length,
       verified: records.filter(item => item.source === "native-card").length,
-      pending: this.pending.size, failed: [...this.attempted.values()].filter(item => item.count > 0).length,
+      pending: this.pending.size + this.queue.length, failed: this.errors.size,
       paused: Date.now() < this.resumeAt, records, updatedAt: Date.now(),
+      timings: { ...this.timings },
+      diagnostic: !this.viewer ? "当前登录账号身份未确认" : undefined,
     });
+  }
+
+  recheck(handle: string): void {
+    if (!/^[a-z0-9_]{1,15}$/.test(handle) || this.pending.has(handle)) return;
+    this.verified.delete(handle);
+    this.attempted.delete(handle);
+    this.errors.delete(handle);
+    this.schedule();
   }
 
   private async probeNext(): Promise<void> {
@@ -333,6 +343,7 @@ export class Controller {
     this.probing = abort;
     const generation = this.generation;
     const viewer = this.viewer;
+    const started = performance.now();
     const valid = () => this.enabled && !this.doc.hidden && this.generation === generation
       && currentViewer(this.doc) === viewer && this.win.location.href === this.route
       && collectAvatars(this.doc, this.win.location.pathname).some(item =>
@@ -341,9 +352,12 @@ export class Controller {
       await withNativeCard(this.doc, avatar, abort.signal, valid, proof => {
         this.verified.set(avatar.handle, { evidence: proof, expires: Date.now() + 60_000 });
         this.attempted.set(avatar.handle, { count: 2, after: Infinity });
+        this.errors.delete(avatar.handle);
       }, this.excluded, true);
     } catch (error) {
       if (valid()) {
+        if (!(error instanceof ProbeInterrupted)) this.errors.set(avatar.handle,
+          error instanceof Error ? error.message : "资料卡读取失败");
         const previous = this.attempted.get(avatar.handle);
         this.attempted.set(avatar.handle, {
           count: (previous?.count ?? 0) + (error instanceof ProbeInterrupted || !visible ? 0 : 1),
@@ -352,6 +366,7 @@ export class Controller {
         });
       }
     } finally {
+      this.timings.relationship = performance.now() - started;
       if (this.probing === abort) this.probing = null;
       if (valid()) this.schedule();
     }
@@ -383,6 +398,7 @@ export class Controller {
       return;
     }
     const generation = this.generation;
+    const actionStarted = performance.now();
     if (kind === "unfollow") {
       this.confirming = true;
       const accepted = await this.view?.confirmUnfollow(avatar.handle);
@@ -427,6 +443,7 @@ export class Controller {
           doc: this.doc, viewer, evidence: fresh, signal: abort.signal, validContext,
           excluded: this.excluded, kind,
           onDispatch: () => {
+            this.timings.dispatch = performance.now() - actionStarted;
             this.phases.set(avatar.handle, "确认中");
             this.scan();
           },
@@ -437,6 +454,7 @@ export class Controller {
           },
         });
         const confirmed = collectEvidence(this.doc, this.excluded).get(avatar.handle);
+        this.timings.confirmation = performance.now() - actionStarted - (this.timings.dispatch ?? 0);
         if (validContext() && confirmed?.nativeId === fresh.nativeId && confirmed.relationship === result) {
           this.verified.set(avatar.handle, { evidence: confirmed, expires: Date.now() + 60_000 });
         }

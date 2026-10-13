@@ -55,6 +55,16 @@ for (const target of targets) {
     page.on("pageerror", error => errors.push(error.message));
     await page.goto("https://x.com/home");
     await page.locator("[data-xfh-root]").waitFor({ timeout: 8000 });
+    const editor = page.locator('[contenteditable="true"][data-testid^="tweetTextarea_"]');
+    await editor.click();
+    const replyRoot = page.locator("[data-xfh-reply-root]");
+    await replyRoot.waitFor();
+    const replyPanel = replyRoot.locator("div.box");
+    await replyPanel.getByRole("button", { name: "互动交流" }).click();
+    await replyPanel.getByRole("button", { name: "插入草稿" }).click();
+    assert.equal(await editor.innerText(), "感谢留言，欢迎继续交流，也可以互相关注认识一下。");
+    assert.equal(await page.evaluate(() => window.fixtureClicks?.alice ?? 0), 0);
+    result.checks.push("reply-overlay-template-insert-without-send");
     result.checks.push("unpacked-extension-loaded");
     const quick = page.locator("[data-xfh-root] button");
     assert.equal(await quick.count(), 5);
@@ -273,8 +283,20 @@ for (const target of targets) {
     assert.equal(await popup.locator("#records").innerText(), "当前页面暂无可显示的关系");
     result.checks.push("popup-identity-author-link-search-filter-and-empty-state");
     await popup.locator("#search").fill("");
-    await popup.evaluate(() => chrome.storage.local.set({ cooldownUntil: Date.now() + 30 * 60 * 1000 }));
-    await popup.waitForFunction(() => document.querySelector("#cooldown").textContent.startsWith("回关 CD："));
+    await page.goto("https://x.com/viewer/verified_followers");
+    await page.evaluate(() => {
+      const alert = document.createElement("div");
+      alert.setAttribute("role", "alert");
+      alert.textContent = "抱歉，你受到速度限制。请稍等片刻，然后再试一次。";
+      document.body.append(alert);
+    });
+    await popup.waitForFunction(() => document.querySelector("#cooldown").textContent.startsWith("建议冷却："));
+    const savedUntil = await popup.evaluate(async () => (await chrome.storage.local.get("cooldownUntil")).cooldownUntil);
+    assert.ok(savedUntil > Date.now());
+    await page.reload();
+    await page.getByText("X 速度限制，建议冷却：", { exact: false }).waitFor();
+    assert.equal(await popup.evaluate(async () => (await chrome.storage.local.get("cooldownUntil")).cooldownUntil), savedUntil);
+    result.checks.push("native-alert-certified-followers-worker-sync-reload-persistence");
     await popup.locator("main").screenshot({ path: `artifacts/${target.name}-popup-cooldown.png` });
     await popup.evaluate(() => chrome.storage.local.remove("cooldownUntil"));
     result.checks.push("popup-active-cooldown-screenshot");
@@ -293,5 +315,11 @@ for (const target of targets) {
 
 const manifest = JSON.parse(await readFile("dist/chrome/manifest.json", "utf8"));
 assert.deepEqual(manifest.permissions, ["storage"]);
+assert.deepEqual(manifest.optional_host_permissions, [
+  "https://*/*",
+  "http://localhost/*",
+  "http://127.0.0.1/*",
+  "http://[::1]/*",
+]);
 assert.deepEqual(manifest.content_scripts[0].matches, ["https://x.com/*"]);
 await writeFile("artifacts/browser-results.json", JSON.stringify(results, null, 2) + "\n");

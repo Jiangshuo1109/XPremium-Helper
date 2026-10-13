@@ -1,6 +1,8 @@
 import { summarize } from "./statistics";
 import { checkUpdate, newer } from "./updates";
 import type { PageState, PageStateRecord } from "./model";
+import { DEFAULT_PRESETS, normalizeBaseUrl, permissionOrigin } from "./reply-model";
+import type { ModelConfig, ReplyPreset } from "./reply-model";
 
 const enabled = document.querySelector<HTMLInputElement>("#enabled")!;
 const status = document.querySelector<HTMLElement>("#status")!;
@@ -16,6 +18,7 @@ const emptyState: PageState = { viewer: null, route: "", updatedAt: 0,
   discovered: 0, verified: 0, pending: 0, failed: 0, paused: false, records: [] };
 let pageState = emptyState;
 let targetTab: number | undefined;
+let presets: ReplyPreset[] = DEFAULT_PRESETS;
 
 async function readPage(): Promise<void> {
   try {
@@ -29,16 +32,26 @@ async function readPage(): Promise<void> {
 function renderCooldown(): void {
   const seconds = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
   if (seconds <= 0) {
-    cooldown.textContent = cooldownUntil ? "冷却已结束" : "暂无冷却";
+    cooldown.textContent = cooldownUntil ? "建议冷却已结束，以 X 为准" : "暂无冷却";
     return;
   }
   const minutes = Math.floor(seconds / 60);
-  cooldown.textContent = `回关 CD：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  cooldown.textContent = `建议冷却：${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 async function load(): Promise<void> {
   try {
     const data = await chrome.storage.local.get(["enabled", "cooldownUntil"]);
+    const replyData = await chrome.storage.local.get(["replyPresets", "modelConfig"]);
+    if (Array.isArray(replyData.replyPresets)) presets = replyData.replyPresets;
+    const config = { baseUrl: "", model: "", apiKey: "", language: "中文", tone: "自然",
+      ...(replyData.modelConfig && typeof replyData.modelConfig === "object" ? replyData.modelConfig : {}) } as ModelConfig;
+    (document.querySelector("#model-base-url") as HTMLInputElement).value = config.baseUrl;
+    (document.querySelector("#model-name") as HTMLInputElement).value = config.model;
+    (document.querySelector("#model-key") as HTMLInputElement).value = config.apiKey;
+    (document.querySelector("#model-language") as HTMLSelectElement).value = config.language;
+    (document.querySelector("#model-tone") as HTMLSelectElement).value = config.tone;
+    renderPresets();
     await readPage();
     enabled.checked = data.enabled !== false;
     cooldownUntil = typeof data.cooldownUntil === "number" ? data.cooldownUntil : 0;
@@ -49,6 +62,22 @@ async function load(): Promise<void> {
   } catch {
     status.textContent = "无法读取设置，请重新打开扩展";
   }
+}
+
+function renderPresets(): void {
+  const list = document.querySelector("#preset-list");
+  if (!list) return;
+  list.replaceChildren(...presets.map(preset => {
+    const row = document.createElement("div"); row.className = "preset-row";
+    const text = document.createElement("small"); text.textContent = `${preset.title}：${preset.text}`;
+    const remove = document.createElement("button"); remove.textContent = preset.builtIn ? "" : "删除";
+    remove.disabled = Boolean(preset.builtIn); remove.title = preset.builtIn ? "内置内容" : `删除 ${preset.title}`;
+    remove.addEventListener("click", async () => {
+      presets = presets.filter(item => item.id !== preset.id);
+      await chrome.storage.local.set({ replyPresets: presets }); renderPresets();
+    });
+    row.append(text, remove); return row;
+  }));
 }
 
 function label(record: PageRecord): string {
@@ -89,6 +118,12 @@ function renderPanel(): void {
   progress.textContent = `已发现 ${pageState.discovered} · 已确认 ${pageState.verified} · 待处理 ${pageState.pending}`
     + (pageState.failed ? ` · 失败 ${pageState.failed}` : "")
     + (pageState.paused ? " · 用户操作中" : "");
+  if (pageState.diagnostic) progress.textContent = pageState.diagnostic;
+  const timingNames: Record<string, string> = { identity: "身份确认", discovery: "头像发现",
+    badges: "蓝 V 判断", render: "按钮渲染", relationship: "资料卡读取",
+    dispatch: "操作触发", confirmation: "X 结果确认" };
+  progress.title = Object.entries(pageState.timings ?? {}).map(([key, value]) =>
+    `${timingNames[key] ?? key} ${value.toFixed(1)} ms`).join("；");
   records.replaceChildren();
   for (const record of pageState.records.filter(matches).slice(0, 80)) {
     const row = document.createElement("li");
@@ -97,6 +132,24 @@ function renderPanel(): void {
     const state = document.createElement("span");
     state.textContent = label(record);
     row.append(name, state);
+    if (record.error) {
+      const reason = document.createElement("small");
+      reason.textContent = record.error;
+      const retry = document.createElement("button");
+      retry.textContent = "↻";
+      retry.title = `重新核实 @${record.handle}`;
+      retry.setAttribute("aria-label", retry.title);
+      retry.addEventListener("click", async () => {
+        retry.disabled = true;
+        try {
+          if (targetTab !== undefined) await chrome.tabs.sendMessage(targetTab,
+            { type: "xfh-recheck", handle: record.handle });
+          await readPage();
+        } catch { reason.textContent = "页面连接已失效，请刷新 X 页面"; }
+        finally { retry.disabled = false; }
+      });
+      row.append(reason, retry);
+    }
     records.append(row);
   }
   if (!records.children.length) {
@@ -129,6 +182,62 @@ chrome.storage.onChanged.addListener((changes, area) => {
 search.addEventListener("input", renderPanel);
 filter.addEventListener("change", renderPanel);
 refresh.addEventListener("click", () => void readPage());
+document.querySelector("#save-model")?.addEventListener("click", async () => {
+  const status = document.querySelector("#model-status")!;
+  try {
+    const baseUrl = normalizeBaseUrl((document.querySelector("#model-base-url") as HTMLInputElement).value);
+    const config: ModelConfig = {
+      baseUrl, model: (document.querySelector("#model-name") as HTMLInputElement).value.trim(),
+      apiKey: (document.querySelector("#model-key") as HTMLInputElement).value,
+      language: (document.querySelector("#model-language") as HTMLSelectElement).value as ModelConfig["language"],
+      tone: (document.querySelector("#model-tone") as HTMLSelectElement).value as ModelConfig["tone"],
+    };
+    const origin = permissionOrigin(baseUrl);
+    const granted = await chrome.permissions.request({ origins: [origin] });
+    if (!granted) throw new Error("未获得接口域名权限");
+    await chrome.storage.local.set({ modelConfig: config, replyPresets: presets });
+    status.textContent = "接口配置已保存";
+  } catch (error) { status.textContent = error instanceof Error ? error.message : "保存失败"; }
+});
+document.querySelector("#test-model")?.addEventListener("click", async () => {
+  const status = document.querySelector("#model-status")!;
+  const button = document.querySelector<HTMLButtonElement>("#test-model")!;
+  button.disabled = true;
+  status.textContent = "接口测试中…";
+  try {
+    const data = await chrome.storage.local.get("modelConfig");
+    const config = data.modelConfig;
+    if (!config || typeof config !== "object") throw new Error("请先保存接口配置");
+    const modelConfig = config as ModelConfig;
+    const result = await chrome.runtime.sendMessage({
+      type: "xfh-generate-reply",
+      context: {
+        name: "接口测试",
+        handle: "local-test",
+        topic: "这是一条本地接口连通性测试，不会发布到 X。",
+        language: modelConfig.language,
+        tone: modelConfig.tone,
+      },
+    });
+    if (!result?.text) throw new Error(result?.error || "接口没有返回可用内容");
+    status.textContent = "接口测试成功，未发送到 X";
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : "接口测试失败";
+  } finally {
+    button.disabled = false;
+  }
+});
+document.querySelector("#add-preset")?.addEventListener("click", async () => {
+  const title = (document.querySelector("#preset-title") as HTMLInputElement).value.trim();
+  const text = (document.querySelector("#preset-text") as HTMLTextAreaElement).value.trim();
+  const category = (document.querySelector("#preset-category") as HTMLSelectElement).value as ReplyPreset["category"];
+  if (!title || !text) return;
+  presets = [...presets, { id: crypto.randomUUID(), title, text, category }];
+  await chrome.storage.local.set({ replyPresets: presets });
+  (document.querySelector("#preset-title") as HTMLInputElement).value = "";
+  (document.querySelector("#preset-text") as HTMLTextAreaElement).value = "";
+  renderPresets();
+});
 const updateButton = document.querySelector<HTMLButtonElement>("#check-update")!;
 async function renderUpdate(force = false): Promise<void> {
   updateButton.disabled = true;
