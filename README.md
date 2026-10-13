@@ -8,7 +8,7 @@
 
 Chrome / Edge 扩展。在 X 页面核实账号关系后，把「关注」「回关」或需要确认的「取关」入口放到头像下方；互关账号显示「蓝朋友」。每次关系操作都由你点击，并交给 X 原生控件执行。
 
-**当前版本：0.3.0 预览版。** 本版本增加回复框旁快捷回复、模板管理和可选的 OpenAI Chat Completions 兼容接口；生成结果只插入草稿，不自动发送。群聊关系读取尚未完成实站验收。
+**当前版本：0.3.1 预览版。** 修复通知页回复弹窗无法显示快捷回复的问题；保留回复框旁快捷回复、模板管理和可选的 OpenAI Chat Completions 兼容接口。生成结果只插入草稿，不自动发送。群聊关系读取尚未完成实站验收。
 
 [下载预览包](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [反馈问题](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [版本记录](CHANGELOG.md)
 

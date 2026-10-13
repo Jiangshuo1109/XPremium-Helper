@@ -21,7 +21,7 @@ export function readReplyContext(editor: HTMLElement): ReplyContext | null {
   if (!region || region.tagName === "BODY") return null;
   let article = editor.closest<HTMLElement>('article[data-testid="tweet"]')
     ?? region.closest<HTMLElement>('article[data-testid="tweet"]');
-  if (!article && /\/status\/\d+/.test(path)) {
+  if (!article) {
     const scope = editor.closest('[role="dialog"]') ?? editor.closest('[data-testid="primaryColumn"]');
     const preceding = [...(scope?.querySelectorAll<HTMLElement>('article[data-testid="tweet"]') ?? [])]
       .filter(node => Boolean(node.compareDocumentPosition(editor) & Node.DOCUMENT_POSITION_FOLLOWING));

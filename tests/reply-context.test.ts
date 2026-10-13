@@ -31,3 +31,25 @@ it("inserts a candidate into the draft and emits input", () => {
   expect(editor.textContent).toBe("可以先看说明");
   expect(input).toHaveBeenCalledOnce();
 });
+
+it("binds a notification reply dialog to its own preceding post", () => {
+  history.replaceState(null, "", "/notifications");
+  const post = document.querySelector("article")!;
+  const composer = post.lastElementChild!;
+  const dialog = document.createElement("div");
+  dialog.setAttribute("role", "dialog");
+  dialog.append(post, composer);
+  document.body.append(dialog);
+  expect(readReplyContext(composer.querySelector<HTMLElement>("[contenteditable]")!))
+    .toMatchObject({ handle: "alice", topic: "请问这个方法怎么使用？" });
+});
+
+it("does not borrow a background post for an empty reply dialog", () => {
+  history.replaceState(null, "", "/notifications");
+  const composer = document.querySelector("article")!.lastElementChild!;
+  const dialog = document.createElement("div");
+  dialog.setAttribute("role", "dialog");
+  dialog.append(composer);
+  document.body.append(dialog);
+  expect(readReplyContext(composer.querySelector<HTMLElement>("[contenteditable]")!)).toBeNull();
+});

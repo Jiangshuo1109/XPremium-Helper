@@ -6,7 +6,7 @@
 
 A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow actions below X avatars after checking account identity and relationship evidence. Mutual follows receive a noninteractive label. Relationship changes require your click and use X's native controls.
 
-**Version 0.3.0, preview.** Adds a reply-side shortcut panel, local templates, and an optional OpenAI Chat Completions-compatible endpoint. Generated text is inserted into the draft and is never sent automatically. Group-chat relationship detection is not yet validated on the live site.
+**Version 0.3.1, preview.** Fixes shortcut reply detection in notification reply dialogs. The reply-side panel, local templates, and optional OpenAI Chat Completions-compatible endpoint remain available. Generated text is inserted into the draft and is never sent automatically. Group-chat relationship detection is not yet validated on the live site.
 
 [Download preview](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Report a bug](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Changelog](CHANGELOG.md)
 
