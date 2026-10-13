@@ -13,6 +13,7 @@ export function post(handle: string, index = 1): string {
       <a href="/${handle}">@${handle}<svg data-testid="icon-verified" style="fill:rgb(29, 155, 240)" width="16" height="16"></svg></a></header>
       <p>这是一条本地测试帖子，用于检查头像按钮的位置和状态。所有账号均为虚构样例。</p>
       <div class="post-meta">12 回复 · 8 喜欢</div>
+      ${index === 1 ? '<div class="reply-box"><div contenteditable="true" role="textbox" data-testid="tweetTextarea_0"></div><button data-testid="tweetButtonInline">回复</button></div>' : ""}
     </div>
   </article>`;
 }

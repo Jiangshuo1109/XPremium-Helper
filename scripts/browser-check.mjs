@@ -55,6 +55,16 @@ for (const target of targets) {
     page.on("pageerror", error => errors.push(error.message));
     await page.goto("https://x.com/home");
     await page.locator("[data-xfh-root]").waitFor({ timeout: 8000 });
+    const editor = page.locator('[contenteditable="true"][data-testid^="tweetTextarea_"]');
+    await editor.click();
+    const replyRoot = page.locator("[data-xfh-reply-root]");
+    await replyRoot.waitFor();
+    const replyPanel = replyRoot.locator("div.box");
+    await replyPanel.getByRole("button", { name: "互动交流" }).click();
+    await replyPanel.getByRole("button", { name: "插入草稿" }).click();
+    assert.equal(await editor.innerText(), "感谢留言，欢迎继续交流，也可以互相关注认识一下。");
+    assert.equal(await page.evaluate(() => window.fixtureClicks?.alice ?? 0), 0);
+    result.checks.push("reply-overlay-template-insert-without-send");
     result.checks.push("unpacked-extension-loaded");
     const quick = page.locator("[data-xfh-root] button");
     assert.equal(await quick.count(), 5);
@@ -305,5 +315,11 @@ for (const target of targets) {
 
 const manifest = JSON.parse(await readFile("dist/chrome/manifest.json", "utf8"));
 assert.deepEqual(manifest.permissions, ["storage"]);
+assert.deepEqual(manifest.optional_host_permissions, [
+  "https://*/*",
+  "http://localhost/*",
+  "http://127.0.0.1/*",
+  "http://[::1]/*",
+]);
 assert.deepEqual(manifest.content_scripts[0].matches, ["https://x.com/*"]);
 await writeFile("artifacts/browser-results.json", JSON.stringify(results, null, 2) + "\n");

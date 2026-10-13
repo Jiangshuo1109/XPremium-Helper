@@ -6,6 +6,7 @@ import type { PageState } from "./model";
 import { RateLimitMonitor } from "./rate-limit-monitor";
 import { FOLLOW_COOLDOWN_MS } from "./cooldown";
 import { View } from "./view";
+import { ReplyOverlay } from "./reply-overlay";
 
 declare global {
   interface Window {
@@ -21,6 +22,7 @@ if (!window.__xfhStarted && window === window.top) {
   let latestState: PageState | null = null;
   let rateMonitor: RateLimitMonitor | null = null;
   let notices: View | null = null;
+  let overlay: ReplyOverlay | null = null;
   let currentCooldown = 0;
   let featureEnabled = false;
   const applyCooldown = (until: number) => {
@@ -83,6 +85,7 @@ if (!window.__xfhStarted && window === window.top) {
       tab.location.href = `https://x.com/${handle}`;
     });
     reply = new ReplyShortcut(document);
+    overlay = new ReplyOverlay(document);
     rateMonitor = new RateLimitMonitor(document, reportRateLimit, text => {
       notices ??= new View(document);
       notices.notify(`X 提示：${text}`);
@@ -117,6 +120,8 @@ if (!window.__xfhStarted && window === window.top) {
     controller = null;
     reply?.destroy();
     reply = null;
+    overlay?.destroy();
+    overlay = null;
     rateMonitor?.destroy();
     rateMonitor = null;
     notices?.destroy();

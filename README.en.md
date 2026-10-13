@@ -6,7 +6,7 @@
 
 A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow actions below X avatars after checking account identity and relationship evidence. Mutual follows receive a noninteractive label. Relationship changes require your click and use X's native controls.
 
-**Version 0.2.5, preview.** Not affiliated with X Corp.; this extension does not provide or unlock X Premium. Real-world group-chat relationship detection is not yet validated. Documentation is available in five languages; the extension UI is Chinese, and native control recognition currently targets Chinese and English.
+**Version 0.3.0, preview.** Adds a reply-side shortcut panel, local templates, and an optional OpenAI Chat Completions-compatible endpoint. Generated text is inserted into the draft and is never sent automatically. Group-chat relationship detection is not yet validated on the live site.
 
 [Download preview](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Report a bug](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Changelog](CHANGELOG.md)
 
@@ -16,9 +16,9 @@ Maintained by **禁忌の小姜**. [Follow @jiangza9 on X](https://x.com/jiangza
 
 ## Features In Use
 
-Screenshots show build 0.2.5 running against isolated fictional posts and relationships, with the author's bundled avatar. They do not demonstrate live X operations. The update “99.0.0” and active cooldown are simulated test states, not an actual release or account restriction.
+Screenshots show isolated fictional posts and relationships. They do not demonstrate live X operations.
 
-<img src="docs/screenshots/popup.png" alt="0.2.5 panel: statistics, author links and simulated update notice" width="360">
+<img src="docs/screenshots/popup.png" alt="XPremium-Helper panel" width="360">
 
 ![Follow actions and mutual-follow label in the light theme](docs/screenshots/desktop-light.png)
 

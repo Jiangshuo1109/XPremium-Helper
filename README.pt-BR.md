@@ -4,7 +4,7 @@
 
 Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e deixar de seguir abaixo dos avatares do X, após verificar a identidade e a relação entre as contas. Relações mútuas recebem uma etiqueta sem ação. Cada mudança depende do seu clique e usa os controles nativos do X.
 
-**Versão 0.2.5, prévia.** Não é afiliada à X Corp. e não oferece nem desbloqueia o X Premium. A leitura de relações em grupos ainda não foi validada no site real. A documentação tem cinco idiomas; a interface da extensão é em chinês e reconhece principalmente controles do X em chinês e inglês.
+**Versão 0.3.0, prévia.** Adiciona respostas rápidas ao lado do editor, modelos locais e um endpoint opcional compatível com OpenAI Chat Completions. O texto gerado apenas entra no rascunho e nunca é enviado automaticamente. A leitura de relações em grupos ainda não foi validada no site real.
 
 [Baixar prévia](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Relatar problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Histórico](CHANGELOG.md)
 
@@ -14,9 +14,9 @@ Mantida por **禁忌の小姜**. [Siga @jiangza9 no X](https://x.com/jiangza9) p
 
 ## Recursos E Capturas
 
-As imagens mostram a versão 0.2.5 em um navegador isolado, com publicações e relações fictícias e o avatar do autor incluído na extensão. Não comprovam operações reais no X. A versão “99.0.0” e o intervalo ativo são estados simulados, não uma versão publicada ou uma restrição real.
+As imagens mostram uma versão de prévia em um navegador isolado, com publicações e relações fictícias e o avatar do autor incluído na extensão. Não comprovam operações reais no X. Versões e intervalos mostrados nas imagens podem ser estados simulados, não uma versão publicada ou uma restrição real.
 
-<img src="docs/screenshots/popup.png" alt="Painel 0.2.5 com estatísticas e aviso simulado de atualização" width="360">
+<img src="docs/screenshots/popup.png" alt="Painel XPremium-Helper" width="360">
 
 ![Ações nos avatares e relação mútua no tema claro](docs/screenshots/desktop-light.png)
 
