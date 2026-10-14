@@ -9,7 +9,6 @@ export function readReplyContext(editor: HTMLElement): ReplyContext | null {
   const button = replyButton(editor);
   const buttonLabel = button?.textContent?.trim() || button?.getAttribute("aria-label")?.trim() || "";
   if (!isVisible(editor) || !button || !/^(?:Reply|回复|回覆|回復)$/i.test(buttonLabel)) return null;
-  if ([...doc.querySelectorAll<HTMLElement>(EDITOR)].filter(isVisible).length !== 1) return null;
   if (doc.querySelector('[data-testid="scheduledConfirmation"], [data-testid="scheduleDatePicker"]')) return null;
   let region: HTMLElement | null = editor;
   while (region && region.tagName !== "BODY") {
@@ -18,6 +17,8 @@ export function readReplyContext(editor: HTMLElement): ReplyContext | null {
     region = region.parentElement;
   }
   if (!region || region.tagName === "BODY") return null;
+  const visibleEditors = [...region.querySelectorAll<HTMLElement>(EDITOR)].filter(isVisible);
+  if (visibleEditors.length !== 1 || visibleEditors[0] !== editor) return null;
   let article = editor.closest<HTMLElement>('article[data-testid="tweet"]')
     ?? region.closest<HTMLElement>('article[data-testid="tweet"]');
   if (!article) {

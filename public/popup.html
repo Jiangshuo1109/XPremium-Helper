@@ -64,7 +64,7 @@
       </section>
       <section class="panel reply-settings" aria-labelledby="reply-title">
         <div class="panel-head"><h2 id="reply-title">快捷回复</h2><span class="setting-state">点击生成才请求</span></div>
-        <p>回复框聚焦后显示浮层；选择内容只插入草稿，不会自动发送。</p>
+        <p>回复框聚焦后显示浮层；预置回复无需 API，选择内容只插入草稿，不会自动发送。</p>
         <label>接口地址<input id="model-base-url" type="url" placeholder="https://api.example.com/v1"></label>
         <label>模型名称<input id="model-name" type="text" placeholder="gpt-4o-mini"></label>
         <label>API Key<input id="model-key" type="password" placeholder="只保存在本机"></label>
@@ -73,7 +73,7 @@
           <label>语气<select id="model-tone"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></label>
         </div>
         <div class="settings-actions"><button id="save-model" type="button">保存接口</button><button id="test-model" type="button">测试接口</button></div>
-        <span id="model-status" role="status" aria-live="polite"></span>
+        <span id="model-status" role="status" aria-live="polite">接口配置保存在本机，更新扩展不会清空。</span>
         <details>
           <summary>管理常用回复</summary>
           <div id="preset-list"></div>

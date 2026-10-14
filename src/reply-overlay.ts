@@ -21,6 +21,7 @@ export class ReplyOverlay {
 
   constructor(private doc: Document) {
     doc.addEventListener("focusin", this.onFocus, true);
+    doc.addEventListener("pointerdown", this.onPointerDown, true);
     doc.addEventListener("click", this.onClick, true);
     window.addEventListener("scroll", this.position, true);
     window.addEventListener("resize", this.position);
@@ -43,9 +44,20 @@ export class ReplyOverlay {
   }
 
   private onFocus = (event: Event): void => {
-    if (!this.enabled) return;
-    const target = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>(EDITOR) : null;
-    if (!target || !isVisible(target)) return;
+    this.openFor(this.editorFrom(event.target));
+  };
+
+  private editorFrom(target: EventTarget | null): HTMLElement | null {
+    if (!(target instanceof HTMLElement)) return null;
+    const direct = target.closest<HTMLElement>(EDITOR);
+    if (direct && isVisible(direct)) return direct;
+    const scope = target.closest<HTMLElement>('[role="dialog"]');
+    const editor = [...(scope?.querySelectorAll<HTMLElement>(EDITOR) ?? [])].find(isVisible);
+    return editor ?? null;
+  }
+
+  private openFor(target: HTMLElement | null): void {
+    if (!this.enabled || !target || !isVisible(target)) return;
     const context = this.context(target);
     if (!context) return this.close();
     if (target === this.editor && this.opened && this.validate()) return;
@@ -61,11 +73,20 @@ export class ReplyOverlay {
       if (this.epoch === epoch && !this.candidate && !this.request && this.validate()) this.render(context);
     }).catch(() => {});
     this.position();
+  }
+
+  private onPointerDown = (event: Event): void => {
+    this.openFor(this.editorFrom(event.target));
   };
 
   private onClick = (event: Event): void => {
-    if (!this.opened || !this.editor || !(event.target instanceof Node)
-      || this.host?.contains(event.target)) return;
+    if (!(event.target instanceof Node) || this.host?.contains(event.target)) return;
+    const editor = this.editorFrom(event.target);
+    if (editor) {
+      this.openFor(editor);
+      return;
+    }
+    if (!this.opened || !this.editor) return;
     if (!this.editor.contains(event.target)) this.close();
   };
 
@@ -134,6 +155,11 @@ export class ReplyOverlay {
     candidate.textContent = text; candidate.hidden = false;
     const insert = this.shadow.querySelector<HTMLButtonElement>(".insert")!;
     insert.disabled = false;
+    const note = this.shadow.querySelector<HTMLElement>(".note");
+    if (note) {
+      note.textContent = "预置回复无需配置 API，点击“插入草稿”后再自行发送";
+      note.classList.remove("error");
+    }
     this.position();
   }
 
@@ -156,7 +182,10 @@ export class ReplyOverlay {
     } catch (error) {
       if (epoch === this.epoch && this.validate()) {
         const note = this.shadow?.querySelector<HTMLElement>(".note");
-        if (note) { note.textContent = error instanceof Error ? error.message : "生成失败"; note.classList.add("error"); }
+        const message = error instanceof Error && /extension context invalidated/i.test(error.message)
+          ? "扩展刚刚更新，请刷新当前 X 页面后再生成"
+          : error instanceof Error ? error.message : "生成失败";
+        if (note) { note.textContent = message; note.classList.add("error"); }
       }
     } finally {
       if (epoch === this.epoch) this.request = false;
@@ -202,6 +231,7 @@ export class ReplyOverlay {
   destroy(): void {
     this.close();
     this.doc.removeEventListener("focusin", this.onFocus, true);
+    this.doc.removeEventListener("pointerdown", this.onPointerDown, true);
     this.doc.removeEventListener("click", this.onClick, true);
     window.removeEventListener("scroll", this.position, true);
     window.removeEventListener("resize", this.position);
