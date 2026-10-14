@@ -70,3 +70,14 @@ it("recognizes a modal editor exposed only as a semantic textbox", () => {
   editor.setAttribute("role", "textbox");
   expect(readReplyContext(editor)).toMatchObject({ handle: "alice" });
 });
+
+it("ignores editors in other posts while reading the current reply region", () => {
+  const other = document.createElement("article");
+  other.innerHTML = `<div data-testid="User-Name"><strong>作者乙</strong><a href="/bob">@bob</a></div>
+    <p data-testid="tweetText">另一条帖子</p>
+    <div><div contenteditable="true" role="textbox" data-testid="tweetTextarea_1"></div>
+    <button data-testid="tweetButtonInline">回复</button></div>`;
+  document.body.append(other);
+  const editor = document.querySelector<HTMLElement>("[contenteditable]")!;
+  expect(readReplyContext(editor)).toMatchObject({ handle: "alice" });
+});
