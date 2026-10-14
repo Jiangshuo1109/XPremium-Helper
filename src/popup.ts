@@ -41,7 +41,10 @@ function renderCooldown(): void {
 
 async function load(): Promise<void> {
   try {
-    const data = await chrome.storage.local.get(["enabled", "cooldownUntil"]);
+    const data = await chrome.storage.local.get([
+      "enabled", "cooldownUntil", "relationshipEnabled", "replyShortcutEnabled",
+      "replyOverlayEnabled", "cooldownEnabled",
+    ]);
     const replyData = await chrome.storage.local.get(["replyPresets", "modelConfig"]);
     if (Array.isArray(replyData.replyPresets)) presets = replyData.replyPresets;
     const config = { baseUrl: "", model: "", apiKey: "", language: "中文", tone: "自然",
@@ -54,6 +57,14 @@ async function load(): Promise<void> {
     renderPresets();
     await readPage();
     enabled.checked = data.enabled !== false;
+    for (const [id, key] of [
+      ["relationship-enabled", "relationshipEnabled"],
+      ["reply-overlay-enabled", "replyOverlayEnabled"],
+      ["reply-shortcut-enabled", "replyShortcutEnabled"],
+      ["cooldown-enabled", "cooldownEnabled"],
+    ] as const) {
+      (document.querySelector(`#${id}`) as HTMLInputElement).checked = data[key] !== false;
+    }
     cooldownUntil = typeof data.cooldownUntil === "number" ? data.cooldownUntil : 0;
     renderCooldown();
     enabled.disabled = false;
@@ -172,6 +183,21 @@ enabled.addEventListener("change", async () => {
     enabled.disabled = false;
   }
 });
+
+for (const [id, key] of [
+  ["relationship-enabled", "relationshipEnabled"],
+  ["reply-overlay-enabled", "replyOverlayEnabled"],
+  ["reply-shortcut-enabled", "replyShortcutEnabled"],
+  ["cooldown-enabled", "cooldownEnabled"],
+] as const) {
+  document.querySelector<HTMLInputElement>(`#${id}`)?.addEventListener("change", async event => {
+    const input = event.currentTarget as HTMLInputElement;
+    input.disabled = true;
+    try { await chrome.storage.local.set({ [key]: input.checked }); }
+    catch { input.checked = !input.checked; }
+    finally { input.disabled = false; }
+  });
+}
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.cooldownUntil) {

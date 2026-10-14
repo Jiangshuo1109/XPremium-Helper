@@ -1,7 +1,7 @@
 import { isVisible } from "./adapter";
 
-const EDITOR = '[contenteditable="true"][data-testid^="tweetTextarea_"]';
-const SUBMIT = '[data-testid="tweetButtonInline"], [data-testid="tweetButton"]';
+export const EDITOR = '[contenteditable="true"][role="textbox"], [contenteditable="true"][data-testid^="tweetTextarea_"]';
+const SUBMIT = '[data-testid="tweetButtonInline"], [data-testid="tweetButton"], [role="button"]';
 const REPLY = /^(?:Reply|回复|回覆|回復|Post|发帖|發佈|发布)$/i;
 
 function isDisabled(element: HTMLElement): boolean {
@@ -18,9 +18,10 @@ export function replyButton(editor: HTMLElement): HTMLElement | null {
     if (editors.length !== 1 || editors[0] !== editor) return null;
     const buttons = [...scope.querySelectorAll<HTMLElement>(SUBMIT)]
       .filter(button => (button instanceof HTMLButtonElement || button.getAttribute("role") === "button")
-        && isVisible(button));
+        && isVisible(button)
+        && REPLY.test(submitLabel(button)));
     if (!buttons.length) continue;
-    if (buttons.length !== 1 || !REPLY.test(submitLabel(buttons[0]))) return null;
+    if (buttons.length !== 1) return null;
     return buttons[0];
   }
   return null;

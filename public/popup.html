@@ -21,7 +21,7 @@
       </header>
       <div class="status-line">
         <span id="status" role="status" aria-live="polite">正在读取设置</span>
-        <span class="version">0.2.1</span>
+        <span class="version">0.3.4</span>
       </div>
       <section class="creator" aria-label="作者联系入口">
         <a class="creator-profile" href="https://x.com/jiangza9" target="_blank" rel="noreferrer">
@@ -55,6 +55,13 @@
         </select>
         <ul id="records" aria-live="polite"></ul>
       </section>
+      <section class="panel feature-settings" aria-labelledby="feature-title">
+        <div class="panel-head"><h2 id="feature-title">功能开关</h2><span>关闭后不显示</span></div>
+        <label class="feature-toggle"><span>关系按钮</span><input id="relationship-enabled" type="checkbox" role="switch"></label>
+        <label class="feature-toggle"><span>快捷回复浮层</span><input id="reply-overlay-enabled" type="checkbox" role="switch"></label>
+        <label class="feature-toggle"><span>Enter 发送</span><input id="reply-shortcut-enabled" type="checkbox" role="switch"></label>
+        <label class="feature-toggle"><span>冷却提示</span><input id="cooldown-enabled" type="checkbox" role="switch"></label>
+      </section>
       <section class="panel reply-settings" aria-labelledby="reply-title">
         <div class="panel-head"><h2 id="reply-title">快捷回复</h2><span class="setting-state">点击生成才请求</span></div>
         <p>回复框聚焦后显示浮层；选择内容只插入草稿，不会自动发送。</p>
@@ -65,7 +72,7 @@
           <label>语言<select id="model-language"><option>中文</option><option>English</option></select></label>
           <label>语气<select id="model-tone"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></label>
         </div>
-        <div class="settings-actions"><button id="save-model" type="button">保存接口</button><button id="test-model" type="button">测试权限</button></div>
+        <div class="settings-actions"><button id="save-model" type="button">保存接口</button><button id="test-model" type="button">测试接口</button></div>
         <span id="model-status" role="status" aria-live="polite"></span>
         <details>
           <summary>管理常用回复</summary>

@@ -2,8 +2,7 @@ import { DEFAULT_PRESETS, replaceVariables } from "./reply-model";
 import { insertReply, readReplyContext } from "./reply-context";
 import type { ReplyPreset } from "./reply-model";
 import { isVisible } from "./adapter";
-
-const EDITOR = '[contenteditable="true"][data-testid^="tweetTextarea_"]';
+import { EDITOR } from "./reply-shortcut";
 
 export class ReplyOverlay {
   private host: HTMLDivElement | null = null;
@@ -13,6 +12,7 @@ export class ReplyOverlay {
   private presets: ReplyPreset[] = DEFAULT_PRESETS;
   private opened = false;
   private request = false;
+  private enabled = true;
   private epoch = 0;
   private binding = "";
   private url = "";
@@ -43,6 +43,7 @@ export class ReplyOverlay {
   }
 
   private onFocus = (event: Event): void => {
+    if (!this.enabled) return;
     const target = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>(EDITOR) : null;
     if (!target || !isVisible(target)) return;
     const context = this.context(target);
@@ -82,16 +83,16 @@ export class ReplyOverlay {
       ["interaction", "互动"], ["thanks", "感谢"], ["polite", "礼貌"],
     ] as const;
     this.shadow.innerHTML = `<style>
-      :host{position:fixed;z-index:2147483646;width:276px;max-width:calc(100vw - 16px);color:#192126;font:12px/1.4 system-ui,"Microsoft YaHei",sans-serif}
-      .box{padding:10px;border:1px solid #cfd7d9;border-radius:8px;background:#fff;box-shadow:0 4px 18px #0002;max-height:calc(100vh - 24px);overflow:auto;overflow-wrap:anywhere}
-      .head{display:flex;justify-content:space-between;gap:8px;align-items:center}.head strong{font-size:12px}
-      .topic{margin:7px 0;color:#68757b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-      .tabs{display:flex;gap:5px;margin:8px 0}.tabs button,.item,.generate,.insert{border:1px solid #cfd7d9;border-radius:5px;background:#f7f9f9;color:inherit;padding:5px 7px;cursor:pointer}
-      .tabs button.active{border-color:#1479b8;color:#1479b8;background:#edf6fb}.items{display:grid;gap:5px}.item{text-align:left}
-      .actions{display:flex;gap:6px;margin-top:8px}.generate{flex:1;background:#1479b8;border-color:#1479b8;color:#fff}.insert{flex:1}
-      .candidate{margin-top:8px;padding:7px;border-left:3px solid #1479b8;background:#f1f7fa;white-space:pre-wrap}.error{color:#b3261e}.choices{display:flex;gap:8px;margin-top:8px}select{min-width:0;flex:1;padding:4px;background:inherit;color:inherit;border:1px solid #879499;border-radius:4px}button:disabled{opacity:.55;cursor:default}
-      .note{margin:6px 0 0;color:#68757b;font-size:10px}.close{border:0;background:transparent;color:#68757b;cursor:pointer}
-      @media(prefers-color-scheme:dark){:host{color:#edf1f2}.box{border-color:#4b565b;background:#202629;box-shadow:0 4px 18px #0008}.topic,.note{color:#a9b3b7}.tabs button,.item,.insert{border-color:#4b565b;background:#171c1e;color:inherit}.candidate{background:#1e3745}}
+      :host{--blue:#1d9bf0;--text:#0f1419;--muted:#536471;--line:#eff3f4;--surface:#fff;--soft:#f7f9f9;position:fixed;z-index:2147483646;width:288px;max-width:calc(100vw - 16px);color:var(--text);font:13px/1.4 system-ui,-apple-system,"Microsoft YaHei",sans-serif}
+      .box{padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 8px 28px #00000022;max-height:calc(100vh - 24px);overflow:auto;overflow-wrap:anywhere}
+      .head{display:flex;justify-content:space-between;gap:8px;align-items:center}.head strong{font-size:15px;font-weight:700}.close{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:18px;line-height:1;cursor:pointer}.close:hover{background:#eff3f4}
+      .topic{margin:8px 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+      .tabs{display:flex;gap:6px;margin:10px 0 8px}.tabs button,.item,.generate,.insert{border:1px solid #cfd9de;border-radius:999px;background:var(--surface);color:inherit;padding:6px 10px;cursor:pointer;font:inherit}
+      .tabs button.active{border-color:var(--blue);color:var(--blue);background:#e8f5fd}.items{display:grid;gap:6px}.item{text-align:left;border-radius:10px;background:var(--soft)}
+      .item:hover,.insert:hover{background:#eff3f4}.actions{display:flex;gap:8px;margin-top:10px}.generate{flex:1;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}.generate:hover{background:#1a8cd8}.insert{flex:1}
+      .candidate{margin-top:9px;padding:8px;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;background:#e8f5fd;white-space:pre-wrap}.error{color:#b3261e}.choices{display:flex;gap:8px;margin-top:9px}select{min-width:0;flex:1;padding:6px 8px;background:var(--surface);color:inherit;border:1px solid #cfd9de;border-radius:8px;font:inherit}button:disabled{opacity:.55;cursor:default}
+      .note{margin:7px 0 0;color:var(--muted);font-size:11px}.note:empty{display:none}
+      @media(prefers-color-scheme:dark){:host{--text:#e7e9ea;--muted:#8b98a5;--line:#2f3336;--surface:#000;--soft:#16181c}.box{box-shadow:0 8px 28px #00000088}.close:hover{background:#181818}.tabs button.active{background:#061d2b}.tabs button,.item,.generate,.insert{border-color:#536471}.item:hover,.insert:hover{background:#181818}.candidate{background:#061d2b}select{border-color:#536471}}
     </style><div class="box"><div class="head"><strong>快捷回复</strong><button class="close" title="关闭">×</button></div>
       <div class="topic"></div><div class="tabs"></div><div class="items"></div>
       <div class="choices"><select aria-label="语言"><option>中文</option><option>English</option></select><select aria-label="语气"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></div>
@@ -191,6 +192,11 @@ export class ReplyOverlay {
     this.host = null;
     this.shadow = null;
     this.request = false;
+  }
+
+  setEnabled(value: boolean): void {
+    this.enabled = value;
+    if (!value) this.close();
   }
 
   destroy(): void {

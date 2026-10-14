@@ -62,3 +62,11 @@ it("accepts an accessible reply label when the button has no visible text", () =
   expect(readReplyContext(document.querySelector<HTMLElement>("[contenteditable]")!))
     .toMatchObject({ handle: "alice" });
 });
+
+it("recognizes a modal editor exposed only as a semantic textbox", () => {
+  history.replaceState(null, "", "/status/123");
+  const editor = document.querySelector<HTMLElement>("[contenteditable]")!;
+  editor.removeAttribute("data-testid");
+  editor.setAttribute("role", "textbox");
+  expect(readReplyContext(editor)).toMatchObject({ handle: "alice" });
+});
