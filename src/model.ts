@@ -58,6 +58,14 @@ export function buttonLabel(evidence: Evidence): string {
   return evidence.followsYou === true ? "回关" : "关注";
 }
 
+export function mergeVerifiedEvidence(current: Evidence, verified: Evidence): Evidence {
+  return {
+    ...current,
+    followsYou: current.followsYou ?? verified.followsYou,
+    blue: current.blue ?? verified.blue,
+  };
+}
+
 export function availableAction(viewer: string | null, evidence: Evidence | undefined): RelationshipAction | null {
   if (!viewer || !evidence || viewer === evidence.handle) return null;
   if (evidence.relationship === "not-following") return "follow";

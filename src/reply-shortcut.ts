@@ -1,6 +1,6 @@
 import { isVisible } from "./adapter";
 
-export const EDITOR = '[contenteditable="true"][role="textbox"], [contenteditable="true"][data-testid^="tweetTextarea_"]';
+export const EDITOR = '[contenteditable="true"]';
 const SUBMIT = '[data-testid="tweetButtonInline"], [data-testid="tweetButton"], [role="button"]';
 const REPLY = /^(?:Reply|回复|回覆|回復|Post|发帖|發佈|发布)$/i;
 

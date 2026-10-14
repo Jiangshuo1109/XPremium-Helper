@@ -3,7 +3,7 @@ import {
   collectAvatars, collectEvidence, collectRelationFacts, currentViewer, handleFromHref,
   hasBlueBadge, readControl,
 } from "../src/adapter";
-import { availableAction, buttonLabel, canFollow } from "../src/model";
+import { availableAction, buttonLabel, canFollow, mergeVerifiedEvidence } from "../src/model";
 import { control, fixture, post } from "./fixtures";
 
 beforeEach(() => {
@@ -100,6 +100,15 @@ describe("identity and relationship evidence", () => {
     }
     document.body.innerHTML = control("alice", "Following", true);
     expect(availableAction("viewer", collectEvidence(document).get("alice"))).toBeNull();
+  });
+
+  it("keeps the current following state while filling a missing inbound edge", () => {
+    const current = collectEvidence(document).get("alice")!;
+    current.followsYou = null;
+    const verified = { ...current, followsYou: true };
+    const merged = mergeVerifiedEvidence(current, verified);
+    expect(merged.relationship).toBe(current.relationship);
+    expect(merged.followsYou).toBe(true);
   });
 
   it("rejects conflicting inbound relations", () => {
