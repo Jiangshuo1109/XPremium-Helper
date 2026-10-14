@@ -4,12 +4,12 @@ import { ReplyOverlay } from "../src/reply-overlay";
 let overlay: ReplyOverlay;
 const root = () => document.querySelector("[data-xfh-reply-root]")!.shadowRoot!;
 const click = (selector: string) => root().querySelector<HTMLButtonElement>(selector)!.click();
-const composer = () => {
+const composer = (semantic = true) => {
   const article = document.createElement("article");
   article.dataset.testid = "tweet";
   article.innerHTML = `<div data-testid="User-Name"><a href="/alice">@alice</a></div>
     <p data-testid="tweetText">测试留言</p><section>
-    <div contenteditable="true" role="textbox"></div><button data-testid="tweetButton">回复</button></section>`;
+    <div contenteditable="true"${semantic ? ' role="textbox"' : ""}></div><button data-testid="tweetButton">回复</button></section>`;
   document.body.append(article);
   return article.querySelector<HTMLElement>("[contenteditable]")!;
 };
@@ -39,7 +39,7 @@ it("opens without any editor and stays open on outside clicks", () => {
 it("retains a preset selected before an editor exists and inserts without API or sending", () => {
   click('[aria-label="打开快捷回复"]');
   click(".item");
-  const editor = composer();
+  const editor = composer(false);
   editor.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
   const send = vi.fn();
   document.querySelector('[data-testid="tweetButton"]')!.addEventListener("click", send);

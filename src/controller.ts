@@ -3,7 +3,7 @@ import {
   quarantineControls, supportedRoute,
 } from "./adapter";
 import { performAction } from "./action";
-import { actionFromRelation, availableAction, buttonLabel, isMutual } from "./model";
+import { actionFromRelation, availableAction, buttonLabel, isMutual, mergeVerifiedEvidence } from "./model";
 import type { Avatar, Evidence, PageState, RelationFact } from "./model";
 import { View } from "./view";
 import type { ButtonView } from "./view";
@@ -191,7 +191,11 @@ export class Controller {
         this.verified.delete(handle);
         this.attempted.delete(handle);
       }
-      else if (!evidence.has(handle)) evidence.set(handle, cached.evidence);
+      else {
+        const current = evidence.get(handle);
+        if (!current) evidence.set(handle, cached.evidence);
+        else evidence.set(handle, mergeVerifiedEvidence(current, cached.evidence));
+      }
     }
     const keep = new Set<HTMLAnchorElement>();
     const chatSeen = new Set<string>();
