@@ -4,7 +4,7 @@
 
 Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e deixar de seguir abaixo dos avatares do X, após verificar a identidade e a relação entre as contas. Relações mútuas recebem uma etiqueta sem ação. Cada mudança depende do seu clique e usa os controles nativos do X.
 
-**Versão 0.3.7, prévia.** O painel independente permanece aberto enquanto você seleciona o editor de resposta do X, permitindo escolher uma resposta integrada antes e inseri-la depois de clicar no editor. Não escolhemos entre vários editores por suposição. As respostas integradas funcionam sem API; a geração do modelo exige um contexto confirmado.
+**Versão 0.3.8, prévia.** O acesso aparece imediatamente. Respostas integradas podem ser escolhidas e inseridas em um editor de resposta visível do X mesmo antes de o rótulo nativo carregar; a geração do modelo ainda exige contexto confirmado. Não escolhemos entre vários editores por suposição.
 
 [Baixar prévia](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Relatar problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Histórico](CHANGELOG.md)
 
