@@ -1,6 +1,7 @@
 import { DEFAULT_PRESETS, replaceVariables } from "./reply-model";
 import { insertReply, readReplyContext } from "./reply-context";
 import type { ReplyPreset } from "./reply-model";
+import type { ReplyContext } from "./reply-model";
 import { isVisible } from "./adapter";
 import { EDITOR } from "./reply-shortcut";
 
@@ -25,7 +26,7 @@ export class ReplyOverlay {
     doc.addEventListener("click", this.onClick, true);
     window.addEventListener("scroll", this.position, true);
     window.addEventListener("resize", this.position);
-    this.observer = new MutationObserver(() => this.validate());
+    this.observer = new MutationObserver(() => { if (this.opened && this.editor) this.validate(); });
     this.observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
     void this.load();
   }
@@ -56,14 +57,23 @@ export class ReplyOverlay {
     return editor ?? null;
   }
 
+  private findEditor(): HTMLElement | null {
+    if (this.editor?.isConnected && isVisible(this.editor)) return this.editor;
+    const active = this.doc.activeElement instanceof HTMLElement
+      ? this.editorFrom(this.doc.activeElement) : null;
+    if (active) return active;
+    return [...this.doc.querySelectorAll<HTMLElement>(EDITOR)]
+      .filter(isVisible)
+      .find(editor => Boolean(this.context(editor))) ?? null;
+  }
+
   private openFor(target: HTMLElement | null): void {
     if (!this.enabled || !target || !isVisible(target)) return;
     const context = this.context(target);
-    if (!context) return this.close();
-    if (target === this.editor && this.opened && this.validate()) return;
+    if (target === this.editor && this.opened) return;
     this.close();
     this.editor = target;
-    this.binding = `${context.handle}\n${context.topic}`;
+    this.binding = context ? `${context.handle}\n${context.topic}` : "";
     this.url = this.doc.location.href;
     this.opened = true;
     this.ensure();
@@ -74,6 +84,20 @@ export class ReplyOverlay {
     }).catch(() => {});
     this.position();
   }
+
+  private openIndependent = (): void => {
+    if (!this.enabled) return;
+    const editor = this.findEditor();
+    const context = editor ? this.context(editor) : null;
+    this.close();
+    this.editor = editor;
+    this.binding = context ? `${context.handle}\n${context.topic}` : "";
+    this.url = this.doc.location.href;
+    this.opened = true;
+    this.ensure();
+    this.render(context);
+    this.position();
+  };
 
   private onPointerDown = (event: Event): void => {
     this.openFor(this.editorFrom(event.target));
@@ -98,7 +122,18 @@ export class ReplyOverlay {
     this.doc.body.append(this.host);
   }
 
-  private render(context: NonNullable<ReturnType<typeof readReplyContext>>): void {
+  private renderLauncher(): void {
+    if (!this.shadow) return;
+    this.shadow.innerHTML = `<style>
+      :host{position:fixed;right:16px;bottom:16px;z-index:2147483646;font:13px/1.4 system-ui,-apple-system,"Microsoft YaHei",sans-serif}
+      button{width:44px;height:44px;border:1px solid #cfd9de;border-radius:50%;background:#1d9bf0;color:#fff;box-shadow:0 4px 16px #0003;cursor:pointer;font:700 20px/1 system-ui,sans-serif}
+      button:hover{background:#1a8cd8}button:focus-visible{outline:2px solid #1d9bf0;outline-offset:3px}
+      @media(prefers-color-scheme:dark){button{border-color:#536471;box-shadow:0 4px 16px #0008}}
+    </style><button type="button" title="打开快捷回复" aria-label="打开快捷回复">↗</button>`;
+    this.shadow.querySelector("button")?.addEventListener("click", this.openIndependent);
+  }
+
+  private render(context: ReplyContext | null): void {
     if (!this.shadow) return;
     const categories = [
       ["interaction", "互动"], ["thanks", "感谢"], ["polite", "礼貌"],
@@ -119,7 +154,9 @@ export class ReplyOverlay {
       <div class="choices"><select aria-label="语言"><option>中文</option><option>English</option></select><select aria-label="语气"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></div>
       <div class="actions"><button class="generate">生成回复</button><button class="insert" disabled>插入草稿</button></div>
       <div class="candidate" hidden></div><div class="note" role="status"></div></div>`;
-    this.shadow.querySelector(".topic")!.textContent = `回复 @${context.handle}：${context.topic}`;
+    this.shadow.querySelector(".topic")!.textContent = context
+      ? `回复 @${context.handle}：${context.topic}`
+      : "尚未绑定回复框。请先点击 X 的回复编辑器，再选择预置回复或生成内容。";
     const tabs = this.shadow.querySelector(".tabs")!;
     const items = this.shadow.querySelector(".items")!;
     let selected = "interaction";
@@ -129,7 +166,7 @@ export class ReplyOverlay {
         const button = this.doc.createElement("button");
         button.className = "item"; button.textContent = item.title; button.type = "button";
         button.addEventListener("click", () => {
-          const text = replaceVariables(item.text, context);
+          const text = replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" });
           this.setCandidate(text);
         });
         return button;
@@ -143,8 +180,15 @@ export class ReplyOverlay {
     }
     renderItems();
     this.shadow.querySelector(".close")!.addEventListener("click", () => this.close());
-    this.shadow.querySelector(".generate")!.addEventListener("click", () => void this.generate(context));
+    this.shadow.querySelector(".generate")!.addEventListener("click", () => void this.generate());
     this.shadow.querySelector(".insert")!.addEventListener("click", () => this.insert());
+    if (!context) {
+      const generate = this.shadow.querySelector<HTMLButtonElement>(".generate")!;
+      generate.disabled = true;
+      const note = this.shadow.querySelector<HTMLElement>(".note")!;
+      note.textContent = "预置回复无需 API；生成回复需要先识别当前留言";
+    }
+    if (this.candidate) this.setCandidate(this.candidate);
     this.position();
   }
 
@@ -163,8 +207,13 @@ export class ReplyOverlay {
     this.position();
   }
 
-  private async generate(context: NonNullable<ReturnType<typeof readReplyContext>>): Promise<void> {
-    if (this.request || !this.validate()) return;
+  private async generate(): Promise<void> {
+    const context = this.editor?.isConnected ? this.context(this.editor) : null;
+    if (this.request || !context) {
+      const note = this.shadow?.querySelector<HTMLElement>(".note");
+      if (note) note.textContent = "请先点击一个可识别的回复框";
+      return;
+    }
     this.request = true;
     const epoch = this.epoch;
     const button = this.shadow?.querySelector<HTMLButtonElement>(".generate");
@@ -194,9 +243,8 @@ export class ReplyOverlay {
   }
 
   private insert(): void {
-    if (!this.validate()) return;
     const text = this.candidate;
-    if (this.editor && insertReply(this.editor, text)) this.close();
+    if (this.editor && this.editor.isConnected && isVisible(this.editor) && insertReply(this.editor, text)) this.close();
     else {
       const note = this.shadow?.querySelector<HTMLElement>(".note");
       if (note) note.textContent = "未能插入，请重新选择回复框";
@@ -204,7 +252,13 @@ export class ReplyOverlay {
   }
 
   private position = (): void => {
-    if (!this.host || !this.editor || !this.opened) return;
+    if (!this.host || !this.opened) return;
+    if (!this.editor) {
+      const height = this.host.getBoundingClientRect().height || 260;
+      this.host.style.left = `${Math.max(8, window.innerWidth - 304)}px`;
+      this.host.style.top = `${Math.max(8, window.innerHeight - height - 72)}px`;
+      return;
+    }
     if (!this.validate()) return;
     const rect = this.editor.getBoundingClientRect();
     const height = this.host.getBoundingClientRect().height || 210;
@@ -221,15 +275,35 @@ export class ReplyOverlay {
     this.host = null;
     this.shadow = null;
     this.request = false;
+    if (this.enabled) {
+      this.ensure();
+      this.renderLauncher();
+    }
   }
 
   setEnabled(value: boolean): void {
     this.enabled = value;
-    if (!value) this.close();
+    if (!value) {
+      this.epoch++;
+      this.opened = false;
+      this.editor = null;
+      this.host?.remove();
+      this.host = null;
+      this.shadow = null;
+      this.request = false;
+      return;
+    }
+    this.ensure();
+    if (!this.opened) this.renderLauncher();
   }
 
   destroy(): void {
-    this.close();
+    this.enabled = false;
+    this.opened = false;
+    this.editor = null;
+    this.host?.remove();
+    this.host = null;
+    this.shadow = null;
     this.doc.removeEventListener("focusin", this.onFocus, true);
     this.doc.removeEventListener("pointerdown", this.onPointerDown, true);
     this.doc.removeEventListener("click", this.onClick, true);

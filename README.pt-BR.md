@@ -4,7 +4,7 @@
 
 Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e deixar de seguir abaixo dos avatares do X, após verificar a identidade e a relação entre as contas. Relações mútuas recebem uma etiqueta sem ação. Cada mudança depende do seu clique e usa os controles nativos do X.
 
-**Versão 0.3.5, prévia.** O painel de respostas rápidas abre ao pressionar ou focar o editor, limita a detecção à área de resposta atual e permite usar respostas integradas sem API. A configuração do modelo permanece no armazenamento local durante as atualizações. O texto gerado apenas entra no rascunho e nunca é enviado automaticamente. A leitura de relações em grupos ainda não foi validada no site real.
+**Versão 0.3.6, prévia.** Um acesso independente para respostas rápidas aparece no canto inferior direito da página do X, sem depender de um evento de foco bem-sucedido no editor. As respostas integradas funcionam sem API; a geração do modelo exige um contexto de resposta confirmado. O texto gerado apenas entra no rascunho e nunca é enviado automaticamente. A leitura de relações em grupos ainda não foi validada no site real.
 
 [Baixar prévia](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Relatar problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Histórico](CHANGELOG.md)
 
