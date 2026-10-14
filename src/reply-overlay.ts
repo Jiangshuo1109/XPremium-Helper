@@ -3,7 +3,7 @@ import { insertReply, readReplyContext } from "./reply-context";
 import type { ReplyPreset } from "./reply-model";
 import type { ReplyContext } from "./reply-model";
 import { isVisible } from "./adapter";
-import { EDITOR } from "./reply-shortcut";
+import { EDITOR, replyButton } from "./reply-shortcut";
 
 export class ReplyOverlay {
   private host: HTMLDivElement | null = null;
@@ -13,7 +13,8 @@ export class ReplyOverlay {
   private presets: ReplyPreset[] = DEFAULT_PRESETS;
   private opened = false;
   private request = false;
-  private enabled = true;
+  private enabled = false;
+  private selectedPreset: ReplyPreset | null = null;
   private epoch = 0;
   private binding = "";
   private url = "";
@@ -26,9 +27,11 @@ export class ReplyOverlay {
     doc.addEventListener("click", this.onClick, true);
     window.addEventListener("scroll", this.position, true);
     window.addEventListener("resize", this.position);
-    this.observer = new MutationObserver(() => { if (this.opened && this.editor) this.validate(); });
+    this.observer = new MutationObserver(() => {
+      if (this.opened) this.validate();
+    });
     this.observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
-    void this.load();
+    void this.load().catch(() => {});
   }
 
   private async load(): Promise<void> {
@@ -37,11 +40,32 @@ export class ReplyOverlay {
   }
 
   private validate(): boolean {
-    if (!this.opened || !this.editor) return false;
-    const context = this.editor.isConnected ? this.context(this.editor) : null;
-    if (this.doc.location.href !== this.url || !context ||
-      `${context.handle}\n${context.topic}` !== this.binding) { this.close(); return false; }
+    if (!this.opened) return false;
+    const context = this.editor?.isConnected ? this.context(this.editor) : null;
+    if (this.doc.location.href !== this.url ||
+      (this.editor && (!this.canInsert(this.editor) ||
+        (context ? `${context.handle}\n${context.topic}` : "") !== this.binding))) {
+      this.epoch++;
+      this.request = false;
+      this.editor = null;
+      this.binding = "";
+      this.candidate = "";
+      this.selectedPreset = null;
+      this.url = this.doc.location.href;
+      this.render(null);
+      return false;
+    }
     return true;
+  }
+
+  private canInsert(editor: HTMLElement): boolean {
+    if (/^\/(?:messages|i\/chat|i\/grok)/.test(this.doc.location.pathname)) return false;
+    if (this.doc.querySelector('[data-testid="scheduledConfirmation"], [data-testid="scheduleDatePicker"]')) return false;
+    const dialog = [...this.doc.querySelectorAll<HTMLElement>('[role="dialog"]')].filter(isVisible).at(-1);
+    if (dialog && !dialog.contains(editor)) return false;
+    const button = replyButton(editor);
+    return editor.isConnected && isVisible(editor) && Boolean(button &&
+      /^(?:Reply|回复|回覆|回復)$/i.test(button.textContent?.trim() || button.getAttribute("aria-label") || ""));
   }
 
   private onFocus = (event: Event): void => {
@@ -51,27 +75,27 @@ export class ReplyOverlay {
   private editorFrom(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof HTMLElement)) return null;
     const direct = target.closest<HTMLElement>(EDITOR);
-    if (direct && isVisible(direct)) return direct;
-    const scope = target.closest<HTMLElement>('[role="dialog"]');
-    const editor = [...(scope?.querySelectorAll<HTMLElement>(EDITOR) ?? [])].find(isVisible);
-    return editor ?? null;
+    return direct && this.canInsert(direct) ? direct : null;
   }
 
   private findEditor(): HTMLElement | null {
-    if (this.editor?.isConnected && isVisible(this.editor)) return this.editor;
+    if (this.editor && this.canInsert(this.editor)) return this.editor;
     const active = this.doc.activeElement instanceof HTMLElement
       ? this.editorFrom(this.doc.activeElement) : null;
     if (active) return active;
-    return [...this.doc.querySelectorAll<HTMLElement>(EDITOR)]
-      .filter(isVisible)
-      .find(editor => Boolean(this.context(editor))) ?? null;
+    const editors = [...this.doc.querySelectorAll<HTMLElement>(EDITOR)].filter(editor => this.canInsert(editor));
+    return editors.length === 1 ? editors[0] : null;
   }
 
   private openFor(target: HTMLElement | null): void {
-    if (!this.enabled || !target || !isVisible(target)) return;
+    if (!this.enabled || !target || !this.canInsert(target)) return;
     const context = this.context(target);
     if (target === this.editor && this.opened) return;
-    this.close();
+    const preset = this.opened && !this.editor && this.url === this.doc.location.href ? this.selectedPreset : null;
+    this.epoch++;
+    this.request = false;
+    this.candidate = preset ? replaceVariables(preset.text, context ?? { name: "", handle: "", topic: "" }) : "";
+    this.selectedPreset = preset;
     this.editor = target;
     this.binding = context ? `${context.handle}\n${context.topic}` : "";
     this.url = this.doc.location.href;
@@ -110,8 +134,6 @@ export class ReplyOverlay {
       this.openFor(editor);
       return;
     }
-    if (!this.opened || !this.editor) return;
-    if (!this.editor.contains(event.target)) this.close();
   };
 
   private ensure(): void {
@@ -166,6 +188,7 @@ export class ReplyOverlay {
         const button = this.doc.createElement("button");
         button.className = "item"; button.textContent = item.title; button.type = "button";
         button.addEventListener("click", () => {
+          this.selectedPreset = item;
           const text = replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" });
           this.setCandidate(text);
         });
@@ -227,6 +250,7 @@ export class ReplyOverlay {
       });
       if (epoch !== this.epoch || !this.validate()) return;
       if (!result?.text) throw new Error(result?.error || "模型没有返回内容");
+      this.selectedPreset = null;
       this.setCandidate(result.text);
     } catch (error) {
       if (epoch === this.epoch && this.validate()) {
@@ -243,8 +267,10 @@ export class ReplyOverlay {
   }
 
   private insert(): void {
+    if (!this.validate()) return;
+    this.editor ??= this.findEditor();
     const text = this.candidate;
-    if (this.editor && this.editor.isConnected && isVisible(this.editor) && insertReply(this.editor, text)) this.close();
+    if (this.editor && this.canInsert(this.editor) && insertReply(this.editor, text)) this.close();
     else {
       const note = this.shadow?.querySelector<HTMLElement>(".note");
       if (note) note.textContent = "未能插入，请重新选择回复框";
@@ -253,22 +279,15 @@ export class ReplyOverlay {
 
   private position = (): void => {
     if (!this.host || !this.opened) return;
-    if (!this.editor) {
-      const height = this.host.getBoundingClientRect().height || 260;
-      this.host.style.left = `${Math.max(8, window.innerWidth - 304)}px`;
-      this.host.style.top = `${Math.max(8, window.innerHeight - height - 72)}px`;
-      return;
-    }
-    if (!this.validate()) return;
-    const rect = this.editor.getBoundingClientRect();
-    const height = this.host.getBoundingClientRect().height || 210;
-    this.host.style.left = `${Math.max(8, Math.min(window.innerWidth - 284, rect.right - 276))}px`;
-    this.host.style.top = `${Math.max(8, Math.min(window.innerHeight - height - 8, rect.bottom + 8))}px`;
+    const height = this.host.getBoundingClientRect().height || 260;
+    this.host.style.left = `${Math.max(8, window.innerWidth - 304)}px`;
+    this.host.style.top = `${Math.max(8, window.innerHeight - height - 72)}px`;
   };
 
   close(): void {
     this.epoch++;
     this.candidate = "";
+    this.selectedPreset = null;
     this.opened = false;
     this.editor = null;
     this.host?.remove();
@@ -284,6 +303,8 @@ export class ReplyOverlay {
   setEnabled(value: boolean): void {
     this.enabled = value;
     if (!value) {
+      this.candidate = "";
+      this.selectedPreset = null;
       this.epoch++;
       this.opened = false;
       this.editor = null;
@@ -298,6 +319,7 @@ export class ReplyOverlay {
   }
 
   destroy(): void {
+    this.epoch++;
     this.enabled = false;
     this.opened = false;
     this.editor = null;
