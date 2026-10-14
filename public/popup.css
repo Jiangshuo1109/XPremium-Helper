@@ -30,6 +30,10 @@ h1 { font-size: 16px; line-height: 20px; margin: 0; font-weight: 700; }
 #cooldown { display: block; margin-top: 3px; color: #765910; font: 600 13px/20px system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 .cooldown-card p { margin: 3px 0 0; color: #866f37; font-size: 10px; line-height: 15px; }
 .panel { margin-top: 14px; padding: 12px; border: 1px solid #dce1e2; border-radius: 9px; background: #fff; }
+.feature-settings .panel-head > span { color: #738087; font-size: 10px; }
+.feature-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid #edf0f1; font-size: 12px; }
+.feature-toggle:last-child { border-bottom: 0; }
+.feature-toggle input { width: 34px; height: 20px; accent-color: #1d9bf0; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 h2 { font-size: 13px; margin: 0; font-weight: 700; }
 #refresh { border: 0; border-radius: 4px; background: #edf4f8; color: #136c9f; padding: 5px 8px; cursor: pointer; font-size: 11px; }

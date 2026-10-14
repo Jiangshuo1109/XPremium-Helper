@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "X 头像快捷关注（0.3.2 预览版）",
-  "version": "0.3.2",
+  "name": "X 头像快捷关注（0.3.4 预览版）",
+  "version": "0.3.4",
   "description": "核实蓝 V 与关注关系后显示快捷入口；支持群聊资料页操作、关系面板和 Enter 发送。",
   "permissions": [
     "storage"

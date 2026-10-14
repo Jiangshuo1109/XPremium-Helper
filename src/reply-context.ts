@@ -1,8 +1,6 @@
 import { handleFromHref, isVisible } from "./adapter";
-import { replyButton } from "./reply-shortcut";
+import { EDITOR, replyButton } from "./reply-shortcut";
 import type { ReplyContext } from "./reply-model";
-
-const EDITOR = '[contenteditable="true"][data-testid^="tweetTextarea_"]';
 
 export function readReplyContext(editor: HTMLElement): ReplyContext | null {
   const doc = editor.ownerDocument;

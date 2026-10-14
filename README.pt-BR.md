@@ -4,7 +4,7 @@
 
 Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e deixar de seguir abaixo dos avatares do X, após verificar a identidade e a relação entre as contas. Relações mútuas recebem uma etiqueta sem ação. Cada mudança depende do seu clique e usa os controles nativos do X.
 
-**Versão 0.3.2, prévia.** Melhora os diálogos de resposta das notificações, aceitando rótulos acessíveis e exigindo uma conta-alvo explícita para vincular a publicação. Mantém o painel, os modelos locais e o endpoint opcional compatível com OpenAI Chat Completions. O texto gerado apenas entra no rascunho e nunca é enviado automaticamente. A leitura de relações em grupos ainda não foi validada no site real.
+**Versão 0.3.4, prévia.** O painel de respostas rápidas acompanha os temas claro e escuro do X, usa solicitações Chat Completions sem streaming e informa claramente respostas de espaço reservado do gateway. O texto gerado apenas entra no rascunho e nunca é enviado automaticamente. A leitura de relações em grupos ainda não foi validada no site real.
 
 [Baixar prévia](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Relatar problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Histórico](CHANGELOG.md)
 

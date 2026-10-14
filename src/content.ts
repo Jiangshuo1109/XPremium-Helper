@@ -25,10 +25,14 @@ if (!window.__xfhStarted && window === window.top) {
   let overlay: ReplyOverlay | null = null;
   let currentCooldown = 0;
   let featureEnabled = false;
+  let relationshipEnabled = true;
+  let replyShortcutEnabled = true;
+  let replyOverlayEnabled = true;
+  let cooldownEnabled = true;
   const applyCooldown = (until: number) => {
     currentCooldown = Math.max(currentCooldown, until);
     controller?.setCooldownUntil(currentCooldown);
-    if (featureEnabled && currentCooldown > Date.now()) {
+    if (featureEnabled && cooldownEnabled && currentCooldown > Date.now()) {
       notices ??= new View(document);
       notices.showCooldown(currentCooldown);
     }
@@ -56,9 +60,28 @@ if (!window.__xfhStarted && window === window.top) {
       revision++;
       featureEnabled = changes.enabled.newValue !== false;
       controller?.setEnabled(changes.enabled.newValue !== false);
-      reply?.setEnabled(changes.enabled.newValue !== false);
-      rateMonitor?.setEnabled(changes.enabled.newValue !== false);
+      reply?.setEnabled(changes.enabled.newValue !== false && replyShortcutEnabled);
+      overlay?.setEnabled(changes.enabled.newValue !== false && replyOverlayEnabled);
+      rateMonitor?.setEnabled(changes.enabled.newValue !== false && cooldownEnabled);
       if (changes.enabled.newValue === false) { notices?.destroy(); notices = null; }
+      else applyCooldown(currentCooldown);
+    }
+    if (changes.relationshipEnabled) {
+      relationshipEnabled = changes.relationshipEnabled.newValue !== false;
+      controller?.setEnabled(featureEnabled && relationshipEnabled);
+    }
+    if (changes.replyShortcutEnabled) {
+      replyShortcutEnabled = changes.replyShortcutEnabled.newValue !== false;
+      reply?.setEnabled(featureEnabled && replyShortcutEnabled);
+    }
+    if (changes.replyOverlayEnabled) {
+      replyOverlayEnabled = changes.replyOverlayEnabled.newValue !== false;
+      overlay?.setEnabled(featureEnabled && replyOverlayEnabled);
+    }
+    if (changes.cooldownEnabled) {
+      cooldownEnabled = changes.cooldownEnabled.newValue !== false;
+      rateMonitor?.setEnabled(featureEnabled && cooldownEnabled);
+      if (!cooldownEnabled) { notices?.destroy(); notices = null; }
       else applyCooldown(currentCooldown);
     }
     if (changes.cooldownUntil) {
@@ -92,13 +115,21 @@ if (!window.__xfhStarted && window === window.top) {
     });
     chrome.storage.onChanged.addListener(changed);
     const initialRevision = ++revision;
-    chrome.storage.local.get(["enabled", "cooldownUntil"]).then(data => {
+    chrome.storage.local.get([
+      "enabled", "cooldownUntil", "relationshipEnabled", "replyShortcutEnabled",
+      "replyOverlayEnabled", "cooldownEnabled",
+    ]).then(data => {
       if (initialRevision === revision) {
         featureEnabled = data.enabled !== false;
-        controller?.setEnabled(data.enabled !== false);
+        relationshipEnabled = data.relationshipEnabled !== false;
+        replyShortcutEnabled = data.replyShortcutEnabled !== false;
+        replyOverlayEnabled = data.replyOverlayEnabled !== false;
+        cooldownEnabled = data.cooldownEnabled !== false;
+        controller?.setEnabled(featureEnabled && relationshipEnabled);
         applyCooldown(typeof data.cooldownUntil === "number" ? data.cooldownUntil : 0);
-        reply?.setEnabled(data.enabled !== false);
-        rateMonitor?.setEnabled(data.enabled !== false);
+        reply?.setEnabled(featureEnabled && replyShortcutEnabled);
+        overlay?.setEnabled(featureEnabled && replyOverlayEnabled);
+        rateMonitor?.setEnabled(featureEnabled && cooldownEnabled);
         void readExternalTask().then(async task => {
           if (!task || task.expiresAt <= Date.now()) return;
           const viewer = currentViewer(document);

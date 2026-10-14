@@ -71,14 +71,33 @@ export function buildModelRequest(config: ModelConfig, context: ReplyContext): {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.apiKey}` },
     body: JSON.stringify({ model: config.model.trim(), messages: [
       { role: "system", content: system }, { role: "user", content: user },
-    ], temperature: 0.7, max_tokens: 160 }),
+    ], stream: false, temperature: 0.7, max_tokens: 160 }),
   };
 }
 
 export function parseModelResponse(payload: unknown): string {
   if (!payload || typeof payload !== "object") throw new Error("模型返回格式无效");
-  const content = (payload as { choices?: Array<{ message?: { content?: unknown } }> })
-    .choices?.[0]?.message?.content;
-  if (typeof content !== "string" || !content.trim()) throw new Error("模型没有返回可用内容");
-  return content.trim().slice(0, 1000);
+  const choice = (payload as {
+    choices?: Array<{
+      message?: { content?: unknown };
+      text?: unknown;
+    }>;
+    output_text?: unknown;
+  }).choices?.[0];
+  const content = choice?.message?.content;
+  const text = typeof content === "string"
+    ? content
+    : Array.isArray(content)
+      ? content.map(part => typeof part === "string" ? part
+        : part && typeof part === "object" && "text" in part && typeof part.text === "string" ? part.text : "")
+        .join("")
+      : typeof choice?.text === "string" ? choice.text
+        : typeof (payload as { output_text?: unknown }).output_text === "string"
+          ? (payload as { output_text: string }).output_text : "";
+  const normalized = text.trim();
+  if (!normalized) throw new Error("模型没有返回可用内容，请检查模型名称或接口响应");
+  if (/^\(?n\/a(?:\s+here)?\)?$/i.test(normalized)) {
+    throw new Error("接口返回了占位内容，请检查 API Key、模型权限或服务商状态");
+  }
+  return normalized.slice(0, 1000);
 }
