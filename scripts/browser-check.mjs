@@ -65,6 +65,13 @@ for (const target of targets) {
     assert.equal(await editor.innerText(), "感谢留言，欢迎继续交流，也可以互相关注认识一下。");
     assert.equal(await page.evaluate(() => window.fixtureClicks?.alice ?? 0), 0);
     result.checks.push("reply-overlay-template-insert-without-send");
+    const launcher = page.locator('[data-xfh-reply-root] button[aria-label="打开快捷回复"]');
+    await launcher.waitFor();
+    await launcher.click();
+    await page.locator('[data-xfh-reply-root] div.box').waitFor();
+    await page.locator('[data-xfh-reply-root] button[title="关闭"]').click();
+    await launcher.waitFor();
+    result.checks.push("reply-overlay-independent-launcher");
     result.checks.push("unpacked-extension-loaded");
     const quick = page.locator("[data-xfh-root] button");
     assert.equal(await quick.count(), 5);

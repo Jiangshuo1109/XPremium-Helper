@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.3.5, preliminar.** El panel de respuestas rápidas se abre al pulsar o enfocar el editor, limita la detección a la zona de respuesta actual y permite usar las respuestas integradas sin API. La configuración del modelo permanece en el almacenamiento local durante las actualizaciones. El texto generado solo se inserta como borrador y nunca se envía automáticamente. La detección de relaciones en chats de grupo aún no está validada en el sitio real.
+**Versión 0.3.6, preliminar.** Hay un acceso independiente para respuestas rápidas en la esquina inferior derecha de X, por lo que el panel ya no depende de que el editor reciba correctamente el foco. Las respuestas integradas funcionan sin API; la generación del modelo requiere un contexto de respuesta confirmado. El texto generado solo se inserta como borrador y nunca se envía automáticamente. La detección de relaciones en chats de grupo aún no está validada en el sitio real.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 
