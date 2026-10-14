@@ -3,7 +3,7 @@ import { insertReply, readReplyContext } from "./reply-context";
 import type { ReplyPreset } from "./reply-model";
 import type { ReplyContext } from "./reply-model";
 import { isVisible } from "./adapter";
-import { EDITOR, replyButton } from "./reply-shortcut";
+import { EDITOR } from "./reply-shortcut";
 
 export class ReplyOverlay {
   private host: HTMLDivElement | null = null;
@@ -20,6 +20,7 @@ export class ReplyOverlay {
   private url = "";
   private candidate = "";
   private observer: MutationObserver;
+  private validationTimer: number | null = null;
 
   constructor(private doc: Document) {
     doc.addEventListener("focusin", this.onFocus, true);
@@ -27,11 +28,20 @@ export class ReplyOverlay {
     doc.addEventListener("click", this.onClick, true);
     window.addEventListener("scroll", this.position, true);
     window.addEventListener("resize", this.position);
-    this.observer = new MutationObserver(() => {
-      if (this.opened) this.validate();
-    });
+    this.observer = new MutationObserver(() => this.scheduleValidation());
     this.observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
+    this.enabled = true;
+    this.ensure();
+    this.renderLauncher();
     void this.load().catch(() => {});
+  }
+
+  private scheduleValidation(): void {
+    if (!this.opened || this.validationTimer !== null) return;
+    this.validationTimer = window.setTimeout(() => {
+      this.validationTimer = null;
+      if (this.opened) this.validate();
+    }, 80);
   }
 
   private async load(): Promise<void> {
@@ -42,9 +52,7 @@ export class ReplyOverlay {
   private validate(): boolean {
     if (!this.opened) return false;
     const context = this.editor?.isConnected ? this.context(this.editor) : null;
-    if (this.doc.location.href !== this.url ||
-      (this.editor && (!this.canInsert(this.editor) ||
-        (context ? `${context.handle}\n${context.topic}` : "") !== this.binding))) {
+    if (this.doc.location.href !== this.url) {
       this.epoch++;
       this.request = false;
       this.editor = null;
@@ -55,17 +63,22 @@ export class ReplyOverlay {
       this.render(null);
       return false;
     }
+    if (this.editor && (!this.canUseEditor(this.editor) ||
+      (this.binding && (!context || `${context.handle}\n${context.topic}` !== this.binding)))) {
+      this.editor = null;
+      this.binding = "";
+      this.render(null);
+      return false;
+    }
     return true;
   }
 
-  private canInsert(editor: HTMLElement): boolean {
+  private canUseEditor(editor: HTMLElement): boolean {
     if (/^\/(?:messages|i\/chat|i\/grok)/.test(this.doc.location.pathname)) return false;
     if (this.doc.querySelector('[data-testid="scheduledConfirmation"], [data-testid="scheduleDatePicker"]')) return false;
     const dialog = [...this.doc.querySelectorAll<HTMLElement>('[role="dialog"]')].filter(isVisible).at(-1);
     if (dialog && !dialog.contains(editor)) return false;
-    const button = replyButton(editor);
-    return editor.isConnected && isVisible(editor) && Boolean(button &&
-      /^(?:Reply|回复|回覆|回復)$/i.test(button.textContent?.trim() || button.getAttribute("aria-label") || ""));
+    return editor.isConnected && isVisible(editor);
   }
 
   private onFocus = (event: Event): void => {
@@ -75,20 +88,20 @@ export class ReplyOverlay {
   private editorFrom(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof HTMLElement)) return null;
     const direct = target.closest<HTMLElement>(EDITOR);
-    return direct && this.canInsert(direct) ? direct : null;
+    return direct && this.canUseEditor(direct) ? direct : null;
   }
 
   private findEditor(): HTMLElement | null {
-    if (this.editor && this.canInsert(this.editor)) return this.editor;
+    if (this.editor && this.canUseEditor(this.editor)) return this.editor;
     const active = this.doc.activeElement instanceof HTMLElement
       ? this.editorFrom(this.doc.activeElement) : null;
     if (active) return active;
-    const editors = [...this.doc.querySelectorAll<HTMLElement>(EDITOR)].filter(editor => this.canInsert(editor));
+    const editors = [...this.doc.querySelectorAll<HTMLElement>(EDITOR)].filter(editor => this.canUseEditor(editor));
     return editors.length === 1 ? editors[0] : null;
   }
 
   private openFor(target: HTMLElement | null): void {
-    if (!this.enabled || !target || !this.canInsert(target)) return;
+    if (!this.enabled || !target || !this.canUseEditor(target)) return;
     const context = this.context(target);
     if (target === this.editor && this.opened) return;
     const preset = this.opened && !this.editor && this.url === this.doc.location.href ? this.selectedPreset : null;
@@ -270,7 +283,7 @@ export class ReplyOverlay {
     if (!this.validate()) return;
     this.editor ??= this.findEditor();
     const text = this.candidate;
-    if (this.editor && this.canInsert(this.editor) && insertReply(this.editor, text)) this.close();
+    if (this.editor && this.canUseEditor(this.editor) && insertReply(this.editor, text)) this.close();
     else {
       const note = this.shadow?.querySelector<HTMLElement>(".note");
       if (note) note.textContent = "未能插入，请重新选择回复框";
@@ -320,6 +333,8 @@ export class ReplyOverlay {
 
   destroy(): void {
     this.epoch++;
+    if (this.validationTimer !== null) window.clearTimeout(this.validationTimer);
+    this.validationTimer = null;
     this.enabled = false;
     this.opened = false;
     this.editor = null;

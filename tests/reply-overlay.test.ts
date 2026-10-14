@@ -49,6 +49,16 @@ it("retains a preset selected before an editor exists and inserts without API or
   expect(send).not.toHaveBeenCalled();
 });
 
+it("binds a visible X editor even when the native reply label is not ready", () => {
+  click('[aria-label="打开快捷回复"]');
+  click(".item");
+  const editor = composer();
+  editor.parentElement!.querySelector("button")?.remove();
+  editor.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+  click(".insert");
+  expect(editor.textContent).toContain("感谢留言");
+});
+
 it("does not choose the first of multiple reply editors", () => {
   composer(); composer();
   click('[aria-label="打开快捷回复"]');
