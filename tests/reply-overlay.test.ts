@@ -59,6 +59,28 @@ it("binds a visible X editor even when the native reply label is not ready", () 
   expect(editor.textContent).toContain("感谢留言");
 });
 
+it("inserts once and sends through the current native reply button", () => {
+  const editor = composer();
+  const send = vi.fn();
+  const button = editor.parentElement!.querySelector("button")!;
+  button.addEventListener("click", send);
+  click('[aria-label="打开快捷回复"]');
+  click(".item");
+  click(".send");
+  expect(editor.textContent).toContain("感谢留言");
+  expect(send).toHaveBeenCalledOnce();
+});
+
+it("does not send when the native reply button is unavailable", () => {
+  const editor = composer();
+  editor.parentElement!.querySelector("button")!.remove();
+  click('[aria-label="打开快捷回复"]');
+  click(".item");
+  click(".send");
+  expect(editor.textContent).toBe("");
+  expect(root().querySelector(".note")?.textContent).toContain("没有找到");
+});
+
 it("does not choose the first of multiple reply editors", () => {
   composer(); composer();
   click('[aria-label="打开快捷回复"]');

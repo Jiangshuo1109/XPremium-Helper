@@ -85,7 +85,6 @@ export function insertReply(editor: HTMLElement, text: string): boolean {
   const after = editor.textContent ?? "";
   // Chromium/X can report false after the command has already changed the editor.
   if (after !== before) {
-    editor.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: text }));
     return after.includes(text);
   }
   if (before.includes(text)) return true;
