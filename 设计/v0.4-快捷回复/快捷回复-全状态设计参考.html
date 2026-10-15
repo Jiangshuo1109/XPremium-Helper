@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>XPremium-Helper v0.4 快捷回复全状态</title>
+<style>
+body{font:13px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#192126;background:#f7f8f8;margin:24px}
+main{max-width:1080px;margin:auto;background:#fff;padding:24px;border:1px solid #dce1e2;border-radius:8px}
+section{margin:24px 0;border-top:1px solid #dce1e2;padding-top:14px}.state{display:inline-block;margin:5px;padding:12px;border:1px solid #cfd7d9;border-radius:6px;width:270px;vertical-align:top;min-height:52px}.ok{border-left:4px solid #1479b8}.warn{border-left:4px solid #b27b16}.error{border-left:4px solid #b33a32}.muted{color:#68757b;font-size:12px}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #dce1e2;padding:7px;text-align:left;vertical-align:top}th{background:#f1f4f5}
+</style>
+<main><h1>XPremium-Helper v0.4 快捷回复全状态</h1><p class="muted">浮层贴近 X 原生回复框，分别展示 AI 推荐内容与 X 当前草稿。</p>
+<section><h2>页面状态</h2>
+<div class="state ok"><b>正常</b><br>模板列表和当前回复框可用。</div>
+<div class="state warn"><b>生成中</b><br>生成按钮显示“生成中…”，不能重复请求。</div>
+<div class="state ok"><b>自动写入</b><br>推荐内容与 X 草稿一致，显示“已与推荐内容一致”。</div>
+<div class="state warn"><b>草稿被修改</b><br>X 当前草稿与推荐内容不同，提示已被手动修改。</div>
+<div class="state"><b>空态</b><br>未绑定回复框时只能选择预置回复，模型生成不可用。</div>
+<div class="state"><b>多编辑器</b><br>无法确认当前回复框时不写入、不发送。</div>
+<div class="state error"><b>模型截断</b><br>接口报告输出达到长度上限，提示提高输出长度或更换模型。</div>
+<div class="state error"><b>接口失败</b><br>分别显示 Key 无效、权限拒绝、限流、超时和 JSON 错误。</div>
+<div class="state error"><b>写入失败</b><br>保留推荐内容，提示重新选择回复框，不点击发送。</div>
+<div class="state warn"><b>发送不可用</b><br>保留草稿，没有明确的 X 原生回复按钮时不发送。</div>
+</section>
+<section><h2>Toast 与状态提示</h2><p>当前浮层只显示一条就地状态提示，成功或同步状态保留在面板内，接口和写入错误使用红色文字并持续到下一次操作。生成、写入和发送过程中相关按钮禁用。</p></section>
+<section><h2>边界情况</h2><ul><li>长文本在推荐区和草稿区独立滚动，保留换行。</li><li>同一候选已经存在于 X 编辑器时直接视为成功，不再次触发 input。</li><li>生成结果超过 1000 字符时只保留前 1000 字符；接口明确返回 length 截断时直接报错。</li><li>页面切换、回复对象变化或编辑器失效时清空当前候选并重新绑定。</li></ul></section>
+<section><h2>交互行为规则</h2><table><tr><th>触发</th><th>用户操作</th><th>系统行为</th><th>反馈</th></tr>
+<tr><td>回复框可识别</td><td>点击或聚焦</td><td>绑定唯一可用编辑器，读取作者和留言</td><td>显示浮层</td></tr>
+<tr><td>预置回复</td><td>点击模板</td><td>生成候选，不调用模型接口</td><td>显示“预置回复已准备好”</td></tr>
+<tr><td>模型生成</td><td>点击“生成并插入”</td><td>发送当前留言上下文，成功后替换 X 当前草稿</td><td>显示推荐文本和实际草稿</td></tr>
+<tr><td>重复写入</td><td>点击“重新写入”</td><td>候选与草稿一致时不追加、不重复触发输入</td><td>保持“一致”状态</td></tr>
+<tr><td>草稿变化</td><td>用户在 X 回复框编辑</td><td>重新读取草稿并与候选比较</td><td>显示“已被手动修改”</td></tr>
+<tr><td>发送</td><td>点击“插入并回复”</td><td>确认编辑器和原生回复按钮后点击一次</td><td>发送成功后关闭浮层</td></tr>
+<tr><td>发送条件不足</td><td>缺少原生回复按钮</td><td>保留草稿，不调用点击</td><td>显示“没有找到可确认的 X 回复按钮”</td></tr>
+<tr><td>页面变化</td><td>切换帖子或刷新</td><td>清空候选和绑定关系</td><td>重新识别当前编辑器</td></tr>
+</table></section></main>

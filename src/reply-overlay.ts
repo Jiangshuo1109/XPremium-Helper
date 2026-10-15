@@ -1,9 +1,10 @@
 import { DEFAULT_PRESETS, replaceVariables } from "./reply-model";
 import { insertReply, readReplyContext } from "./reply-context";
-import type { ReplyPreset } from "./reply-model";
-import type { ReplyContext } from "./reply-model";
+import type { ReplyPreset, ReplyContext } from "./reply-model";
 import { isVisible } from "./adapter";
 import { EDITOR, replyButton } from "./reply-shortcut";
+
+type WriteState = "idle" | "written" | "changed" | "error";
 
 export class ReplyOverlay {
   private host: HTMLDivElement | null = null;
@@ -13,12 +14,14 @@ export class ReplyOverlay {
   private presets: ReplyPreset[] = DEFAULT_PRESETS;
   private opened = false;
   private request = false;
+  private sending = false;
   private enabled = false;
   private selectedPreset: ReplyPreset | null = null;
   private epoch = 0;
   private binding = "";
   private url = "";
   private candidate = "";
+  private writeState: WriteState = "idle";
   private observer: MutationObserver;
   private validationTimer: number | null = null;
 
@@ -58,6 +61,7 @@ export class ReplyOverlay {
       this.editor = null;
       this.binding = "";
       this.candidate = "";
+      this.writeState = "idle";
       this.selectedPreset = null;
       this.url = this.doc.location.href;
       this.render(null);
@@ -67,9 +71,11 @@ export class ReplyOverlay {
       (this.binding && (!context || `${context.handle}\n${context.topic}` !== this.binding)))) {
       this.editor = null;
       this.binding = "";
+      this.writeState = "idle";
       this.render(null);
       return false;
     }
+    this.syncDraft();
     return true;
   }
 
@@ -108,6 +114,7 @@ export class ReplyOverlay {
     this.epoch++;
     this.request = false;
     this.candidate = preset ? replaceVariables(preset.text, context ?? { name: "", handle: "", topic: "" }) : "";
+    this.writeState = "idle";
     this.selectedPreset = preset;
     this.editor = target;
     this.binding = context ? `${context.handle}\n${context.topic}` : "";
@@ -143,10 +150,7 @@ export class ReplyOverlay {
   private onClick = (event: Event): void => {
     if (!(event.target instanceof Node) || this.host?.contains(event.target)) return;
     const editor = this.editorFrom(event.target);
-    if (editor) {
-      this.openFor(editor);
-      return;
-    }
+    if (editor) this.openFor(editor);
   };
 
   private ensure(): void {
@@ -174,22 +178,28 @@ export class ReplyOverlay {
       ["interaction", "互动"], ["thanks", "感谢"], ["polite", "礼貌"],
     ] as const;
     this.shadow.innerHTML = `<style>
-      :host{--blue:#1d9bf0;--text:#0f1419;--muted:#536471;--line:#eff3f4;--surface:#fff;--soft:#f7f9f9;position:fixed;z-index:2147483646;width:288px;max-width:calc(100vw - 16px);color:var(--text);font:13px/1.4 system-ui,-apple-system,"Microsoft YaHei",sans-serif}
-      .box{padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 8px 28px #00000022;max-height:calc(100vh - 24px);overflow:auto;overflow-wrap:anywhere}
+      :host{--blue:#1d9bf0;--text:#0f1419;--muted:#536471;--line:#cfd9de;--surface:#fff;--soft:#f7f9f9;position:fixed;z-index:2147483646;width:324px;max-width:calc(100vw - 16px);color:var(--text);font:13px/1.4 system-ui,-apple-system,"Microsoft YaHei",sans-serif}
+      .box{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 8px 28px #00000022;max-height:calc(100vh - 24px);overflow:auto;overflow-wrap:anywhere}
       .head{display:flex;justify-content:space-between;gap:8px;align-items:center}.head strong{font-size:15px;font-weight:700}.close{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:18px;line-height:1;cursor:pointer}.close:hover{background:#eff3f4}
-      .topic{margin:8px 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-      .tabs{display:flex;gap:6px;margin:10px 0 8px}.tabs button,.item,.generate,.insert{border:1px solid #cfd9de;border-radius:999px;background:var(--surface);color:inherit;padding:6px 10px;cursor:pointer;font:inherit}
+      .topic{margin:8px 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+      .section-label{display:flex;justify-content:space-between;align-items:center;margin:12px 0 5px;font-size:12px;font-weight:700}.section-label small{font-weight:400;color:var(--muted)}
+      .tabs{display:flex;gap:6px;margin:10px 0 8px}.tabs button,.item,.generate,.insert{border:1px solid var(--line);border-radius:999px;background:var(--surface);color:inherit;padding:6px 10px;cursor:pointer;font:inherit}
       .tabs button.active{border-color:var(--blue);color:var(--blue);background:#e8f5fd}.items{display:grid;gap:6px}.item{text-align:left;border-radius:10px;background:var(--soft)}
-      .item:hover,.insert:hover,.send:hover{background:#eff3f4}.actions{display:flex;gap:8px;margin-top:10px}.generate{flex:1;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}.generate:hover{background:#1a8cd8}.insert{flex:1}.send{width:100%;margin-top:8px;border:1px solid var(--blue);border-radius:999px;background:var(--blue);color:#fff;padding:7px 10px;cursor:pointer;font:700 13px/1.4 inherit}.send:hover{background:#1a8cd8}
-      .candidate{margin-top:9px;padding:8px;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;background:#e8f5fd;white-space:pre-wrap}.error{color:#b3261e}.choices{display:flex;gap:8px;margin-top:9px}select{min-width:0;flex:1;padding:6px 8px;background:var(--surface);color:inherit;border:1px solid #cfd9de;border-radius:8px;font:inherit}button:disabled{opacity:.55;cursor:default}
-      .note{margin:7px 0 0;color:var(--muted);font-size:11px}.note:empty{display:none}
-      @media(prefers-color-scheme:dark){:host{--text:#e7e9ea;--muted:#8b98a5;--line:#2f3336;--surface:#000;--soft:#16181c}.box{box-shadow:0 8px 28px #00000088}.close:hover{background:#181818}.tabs button.active{background:#061d2b}.tabs button,.item,.generate,.insert,.send{border-color:#536471}.item:hover,.insert:hover,.send:hover{background:#181818}.candidate{background:#061d2b}select{border-color:#536471}}
+      .item:hover,.insert:hover,.send:hover{background:#eff3f4}.choices{display:flex;gap:8px;margin-top:10px}select{min-width:0;flex:1;padding:7px 8px;background:var(--surface);color:inherit;border:1px solid var(--line);border-radius:8px;font:inherit}
+      .text-box{max-height:116px;min-height:34px;overflow:auto;white-space:pre-wrap;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--soft);line-height:1.5}.recommendation{border-color:#8ecdf5;background:#e8f5fd}.draft{background:var(--surface)}.empty{color:var(--muted)}
+      .status{margin:7px 0 0;color:var(--muted);font-size:11px}.status.error{color:#b3261e}.status.ok{color:#167447}.actions{display:flex;gap:8px;margin-top:10px}.generate{flex:1;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}.generate:hover{background:#1a8cd8}.insert{flex:1}.send{width:100%;margin-top:8px;border:1px solid var(--blue);border-radius:999px;background:var(--blue);color:#fff;padding:8px 10px;cursor:pointer;font:700 13px/1.4 inherit}.send:hover{background:#1a8cd8}
+      button:disabled{opacity:.55;cursor:default}
+      @media(prefers-color-scheme:dark){:host{--text:#e7e9ea;--muted:#8b98a5;--line:#536471;--surface:#000;--soft:#16181c}.box{box-shadow:0 8px 28px #00000088}.close:hover{background:#181818}.tabs button.active{background:#061d2b}.item:hover,.insert:hover,.send:hover{background:#181818}.recommendation{background:#061d2b}}
     </style><div class="box"><div class="head"><strong>快捷回复</strong><button class="close" title="关闭">×</button></div>
       <div class="topic"></div><div class="tabs"></div><div class="items"></div>
       <div class="choices"><select aria-label="语言"><option>中文</option><option>English</option></select><select aria-label="语气"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></div>
-      <div class="actions"><button class="generate">生成回复</button><button class="insert" disabled>插入草稿</button></div>
+      <div class="section-label"><span>AI 推荐内容</span><small class="recommendation-state"></small></div>
+      <div class="text-box recommendation empty">生成后会自动写入 X 回复框</div>
+      <div class="section-label"><span>X 当前草稿</span><small class="draft-state"></small></div>
+      <div class="text-box draft empty">尚未绑定回复框</div>
+      <div class="actions"><button class="generate">生成并插入</button><button class="insert" disabled>重新写入</button></div>
       <button class="send" disabled>插入并回复</button>
-      <div class="candidate" hidden></div><div class="note" role="status"></div></div>`;
+      <div class="status" role="status"></div></div>`;
     this.shadow.querySelector(".topic")!.textContent = context
       ? `回复 @${context.handle}：${context.topic}`
       : "尚未绑定回复框。请先点击 X 的回复编辑器，再选择预置回复或生成内容。";
@@ -203,8 +213,7 @@ export class ReplyOverlay {
         button.className = "item"; button.textContent = item.title; button.type = "button";
         button.addEventListener("click", () => {
           this.selectedPreset = item;
-          const text = replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" });
-          this.setCandidate(text);
+          this.setCandidate(replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" }));
         });
         return button;
       }));
@@ -223,35 +232,32 @@ export class ReplyOverlay {
     if (!context) {
       const generate = this.shadow.querySelector<HTMLButtonElement>(".generate")!;
       generate.disabled = true;
-      const note = this.shadow.querySelector<HTMLElement>(".note")!;
-      note.textContent = "预置回复无需 API；生成回复需要先识别当前留言";
+      this.setStatus("预置回复无需 API；生成回复需要先识别当前留言", false);
     }
     if (this.candidate) this.setCandidate(this.candidate);
+    this.syncDraft();
     this.position();
   }
 
-  private setCandidate(text: string): void {
+  private setCandidate(text: string, autoInsert = false): void {
     if (!this.shadow) return;
     this.candidate = text;
-    const candidate = this.shadow.querySelector<HTMLElement>(".candidate")!;
-    candidate.textContent = text; candidate.hidden = false;
-    const insert = this.shadow.querySelector<HTMLButtonElement>(".insert")!;
-    insert.disabled = false;
-    const send = this.shadow.querySelector<HTMLButtonElement>(".send")!;
-    send.disabled = false;
-    const note = this.shadow.querySelector<HTMLElement>(".note");
-    if (note) {
-      note.textContent = "预置回复无需配置 API，点击“插入草稿”后再自行发送";
-      note.classList.remove("error");
-    }
+    const candidate = this.shadow.querySelector<HTMLElement>(".recommendation")!;
+    candidate.textContent = text;
+    candidate.classList.remove("empty");
+    this.shadow.querySelector<HTMLButtonElement>(".insert")!.disabled = false;
+    this.shadow.querySelector<HTMLButtonElement>(".send")!.disabled = false;
+    const state = this.shadow.querySelector<HTMLElement>(".recommendation-state");
+    if (state) state.textContent = autoInsert ? "正在写入…" : "待写入";
+    this.setStatus(autoInsert ? "正在写入当前回复框…" : "预置回复已准备好", false);
+    if (autoInsert) this.applyCandidate();
     this.position();
   }
 
   private async generate(): Promise<void> {
     const context = this.editor?.isConnected ? this.context(this.editor) : null;
-    if (this.request || !context) {
-      const note = this.shadow?.querySelector<HTMLElement>(".note");
-      if (note) note.textContent = "请先点击一个可识别的回复框";
+    if (this.request || this.sending || !context) {
+      this.setStatus("请先点击一个可识别的回复框", true);
       return;
     }
     this.request = true;
@@ -268,63 +274,100 @@ export class ReplyOverlay {
       if (epoch !== this.epoch || !this.validate()) return;
       if (!result?.text) throw new Error(result?.error || "模型没有返回内容");
       this.selectedPreset = null;
-      this.setCandidate(result.text);
+      this.setCandidate(result.text, true);
     } catch (error) {
       if (epoch === this.epoch && this.validate()) {
-        const note = this.shadow?.querySelector<HTMLElement>(".note");
         const message = error instanceof Error && /extension context invalidated/i.test(error.message)
           ? "扩展刚刚更新，请刷新当前 X 页面后再生成"
           : error instanceof Error ? error.message : "生成失败";
-        if (note) { note.textContent = message; note.classList.add("error"); }
+        this.setStatus(message, true);
       }
     } finally {
       if (epoch === this.epoch) this.request = false;
-      if (button) { button.disabled = false; button.textContent = "生成回复"; }
+      if (button) { button.disabled = false; button.textContent = "重新生成"; }
     }
   }
 
   private insert(): void {
     if (!this.validate()) return;
-    this.editor ??= this.findEditor();
-    const text = this.candidate;
-    if (this.editor && this.canUseEditor(this.editor) && insertReply(this.editor, text)) this.close();
-    else {
-      const note = this.shadow?.querySelector<HTMLElement>(".note");
-      if (note) note.textContent = "未能插入，请重新选择回复框";
-    }
+    if (this.applyCandidate()) this.close();
   }
 
   private insertAndSend(): void {
-    if (!this.validate()) return;
+    if (this.sending || !this.validate()) return;
     this.editor ??= this.findEditor();
     const editor = this.editor;
-    const text = this.candidate;
     const button = editor ? replyButton(editor) : null;
     if (!editor || !this.canUseEditor(editor) || !button
       || button.hasAttribute("disabled") || button.getAttribute("aria-disabled") === "true") {
-      const note = this.shadow?.querySelector<HTMLElement>(".note");
-      if (note) {
-        note.textContent = "已保留草稿，但没有找到可确认的 X 回复按钮";
-        note.classList.add("error");
-      }
+      this.setStatus("已保留草稿，但没有找到可确认的 X 回复按钮", true);
       return;
     }
-    if (!insertReply(editor, text)) {
-      const note = this.shadow?.querySelector<HTMLElement>(".note");
-      if (note) {
-        note.textContent = "写入回复框失败，未发送";
-        note.classList.add("error");
-      }
+    this.sending = true;
+    this.setStatus("正在提交回复…", false);
+    const send = this.shadow?.querySelector<HTMLButtonElement>(".send");
+    if (send) send.disabled = true;
+    if (!this.applyCandidate()) {
+      this.sending = false;
+      if (send) send.disabled = false;
       return;
     }
     button.click();
     this.close();
   }
 
+  private applyCandidate(): boolean {
+    if (!this.candidate || !this.validate()) return false;
+    this.editor ??= this.findEditor();
+    const editor = this.editor;
+    if (!editor || !this.canUseEditor(editor) || !insertReply(editor, this.candidate)) {
+      this.writeState = "error";
+      this.setStatus("写入回复框失败，请重新选择回复框", true);
+      return false;
+    }
+    this.writeState = "written";
+    const state = this.shadow?.querySelector<HTMLElement>(".recommendation-state");
+    if (state) state.textContent = "已写入";
+    this.syncDraft();
+    return true;
+  }
+
+  private syncDraft(): void {
+    if (!this.shadow) return;
+    const editor = this.editor?.isConnected && this.canUseEditor(this.editor) ? this.editor : null;
+    const draft = editor?.textContent ?? "";
+    const draftBox = this.shadow.querySelector<HTMLElement>(".draft");
+    const draftState = this.shadow.querySelector<HTMLElement>(".draft-state");
+    if (draftBox) {
+      draftBox.textContent = draft || "回复框还是空的";
+      draftBox.classList.toggle("empty", !draft);
+    }
+    if (draftState) {
+      if (!editor) draftState.textContent = "";
+      else if (this.candidate && draft === this.candidate) draftState.textContent = "已与推荐内容一致";
+      else if (this.candidate && draft) draftState.textContent = "已被手动修改";
+      else draftState.textContent = "可编辑";
+    }
+    if (this.candidate && draft && draft !== this.candidate && this.writeState === "written") {
+      this.writeState = "changed";
+      this.setStatus("X 回复框内容已被手动修改", false);
+    }
+    const send = this.shadow.querySelector<HTMLButtonElement>(".send");
+    if (send) send.disabled = !this.candidate || !draft || this.sending;
+  }
+
+  private setStatus(text: string, error: boolean): void {
+    const status = this.shadow?.querySelector<HTMLElement>(".status");
+    if (!status) return;
+    status.textContent = text;
+    status.classList.toggle("error", error);
+    status.classList.toggle("ok", !error && Boolean(text));
+  }
+
   private position = (): void => {
     if (!this.host || !this.opened) return;
-    const height = this.host.getBoundingClientRect().height || 260;
-    this.host.style.left = `${Math.max(8, window.innerWidth - 304)}px`;
+    const height = this.host.getBoundingClientRect().height || 300;
+    this.host.style.left = `${Math.max(8, window.innerWidth - 340)}px`;
     this.host.style.top = `${Math.max(8, window.innerHeight - height - 72)}px`;
   };
 
@@ -338,6 +381,8 @@ export class ReplyOverlay {
     this.host = null;
     this.shadow = null;
     this.request = false;
+    this.sending = false;
+    this.writeState = "idle";
     if (this.enabled) {
       this.ensure();
       this.renderLauncher();
@@ -356,6 +401,8 @@ export class ReplyOverlay {
       this.host = null;
       this.shadow = null;
       this.request = false;
+      this.sending = false;
+      this.writeState = "idle";
       return;
     }
     this.ensure();

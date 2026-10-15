@@ -84,13 +84,17 @@ export function insertReply(editor: HTMLElement, text: string): boolean {
   if (before === text) return true;
   // Replace the current draft instead of inserting at X's active caret. This
   // also clears an inline completion that X may have attached to the old text.
-  document.execCommand?.("selectAll", false);
-  document.execCommand?.("insertText", false, text);
+  const ownerDocument = editor.ownerDocument;
+  const execCommand = ownerDocument.execCommand?.bind(ownerDocument);
+  execCommand?.("selectAll", false);
+  execCommand?.("insertText", false, text);
   const after = editor.textContent ?? "";
   if (after === text) return true;
   if (after === before || !after.trim()) {
     editor.replaceChildren(document.createTextNode(text));
-    editor.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: text }));
+    editor.dispatchEvent(new ownerDocument.defaultView!.InputEvent("input", {
+      bubbles: true, inputType: "insertText", data: text,
+    }));
     return editor.textContent === text;
   }
   return false;

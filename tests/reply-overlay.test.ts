@@ -78,7 +78,7 @@ it("does not send when the native reply button is unavailable", () => {
   click(".item");
   click(".send");
   expect(editor.textContent).toBe("");
-  expect(root().querySelector(".note")?.textContent).toContain("没有找到");
+  expect(root().querySelector(".status")?.textContent).toContain("没有找到");
 });
 
 it("does not choose the first of multiple reply editors", () => {
@@ -98,5 +98,41 @@ it("clears candidates when disabled and keeps private-message editors unbound", 
   expect(document.querySelector("[data-xfh-reply-root]")).toBeNull();
   overlay.setEnabled(true);
   click('[aria-label="打开快捷回复"]');
-  expect(root().querySelector(".candidate")!.hasAttribute("hidden")).toBe(true);
+  expect(root().querySelector(".recommendation")?.textContent).toContain("生成后会自动写入");
+});
+
+it("automatically writes a generated reply and mirrors the editor draft", async () => {
+  const editor = composer();
+  vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({ text: "这是一条完整的模型回复。" } as never);
+  click('[aria-label="打开快捷回复"]');
+  await root().querySelector<HTMLButtonElement>(".generate")!.click();
+  await vi.waitFor(() => expect(editor.textContent).toBe("这是一条完整的模型回复。"));
+  expect(root().querySelector(".recommendation")?.textContent).toBe("这是一条完整的模型回复。");
+  expect(root().querySelector(".draft")?.textContent).toBe("这是一条完整的模型回复。");
+  expect(root().querySelector(".draft-state")?.textContent).toContain("一致");
+});
+
+it("reports when the user changes the generated draft", async () => {
+  const editor = composer();
+  vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({ text: "模型建议内容。" } as never);
+  click('[aria-label="打开快捷回复"]');
+  await root().querySelector<HTMLButtonElement>(".generate")!.click();
+  await vi.waitFor(() => expect(editor.textContent).toBe("模型建议内容。"));
+  editor.textContent = "用户手动改过的内容。";
+  editor.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText" }));
+  await vi.waitFor(() => expect(root().querySelector(".draft-state")?.textContent).toContain("手动修改"));
+  expect(root().querySelector(".status")?.textContent).toContain("手动修改");
+});
+
+it("does not write the same generated reply twice", async () => {
+  const editor = composer();
+  const input = vi.fn();
+  editor.addEventListener("input", input);
+  vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({ text: "只写入一次。" } as never);
+  click('[aria-label="打开快捷回复"]');
+  await root().querySelector<HTMLButtonElement>(".generate")!.click();
+  await vi.waitFor(() => expect(editor.textContent).toBe("只写入一次。"));
+  click(".insert");
+  expect(editor.textContent).toBe("只写入一次。");
+  expect(input).toHaveBeenCalledOnce();
 });

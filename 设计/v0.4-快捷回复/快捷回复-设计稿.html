@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>XPremium-Helper v0.4 快捷回复设计稿</title>
+<style>
+  :root{font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#192126;background:#f7f8f8}
+  body{margin:0;padding:32px}.frame{max-width:760px;margin:auto;background:#fff;border:1px solid #dce1e2;border-radius:10px;padding:24px}
+  h1{font-size:20px;margin:0}.muted{color:#68757b;font-size:12px}.post{margin-top:22px;padding:16px;border-bottom:1px solid #edf0f1}
+  .author{font-weight:700}.topic{margin:8px 0 18px}.editor{padding:12px;border:1px solid #1479b8;border-radius:7px;min-height:62px}
+  .overlay{width:310px;margin:8px 0 0 auto;padding:12px;border:1px solid #cfd7d9;border-radius:10px;box-shadow:0 4px 18px #0002}
+  .head,.row,.label{display:flex;align-items:center;justify-content:space-between;gap:8px}.row{margin-top:8px}.pill,.item,button,select{border:1px solid #cfd7d9;border-radius:6px;padding:7px 9px;background:#f7f9f9;font:inherit}.pill{border-radius:999px}.active,.primary{border-color:#1479b8;background:#1479b8;color:#fff}
+  .items{display:grid;gap:5px;margin-top:8px}.item{text-align:left}.label{margin-top:12px;font-size:12px;font-weight:700}.label small{color:#68757b;font-weight:400}
+  .text{max-height:90px;overflow:auto;white-space:pre-wrap;margin-top:5px;padding:9px;border:1px solid #cfd7d9;border-radius:7px;background:#f7f9f9}.recommend{border-color:#83c8ef;background:#eef8fd}.status{font-size:12px;color:#1479b8;margin-top:6px}
+</style>
+<div class="frame">
+  <h1>XPremium-Helper · v0.4 快捷回复</h1>
+  <p class="muted">生成内容写入当前 X 草稿，但不会自动发送。</p>
+  <div class="post"><div class="author">作者甲 · @alice</div><div class="topic">请问这个方法怎么使用？</div>
+    <div class="editor">可以先看说明文档，里面有完整步骤。</div>
+    <div class="overlay">
+      <div class="head"><strong>快捷回复</strong><button>×</button></div>
+      <p class="muted">回复 @alice：请问这个方法怎么使用？</p>
+      <div class="row"><button class="pill active">互动</button><button class="pill">感谢</button><button class="pill">礼貌</button></div>
+      <div class="items"><button class="item">互动交流</button><button class="item">继续交流</button></div>
+      <div class="row"><select><option>中文</option></select><select><option>自然</option></select></div>
+      <div class="label"><span>AI 推荐内容</span><small>已写入</small></div>
+      <div class="text recommend">可以先看说明文档，里面有完整步骤。如果你卡在某一步，可以把具体情况发出来。</div>
+      <div class="label"><span>X 当前草稿</span><small>已与推荐内容一致</small></div>
+      <div class="text">可以先看说明文档，里面有完整步骤。如果你卡在某一步，可以把具体情况发出来。</div>
+      <div class="row"><button class="primary">重新生成</button><button>重新写入</button></div>
+      <button class="primary" style="width:100%;margin-top:8px">插入并回复</button>
+      <div class="status">生成内容已写入回复框，尚未发送。</div>
+    </div>
+  </div>
+</div>

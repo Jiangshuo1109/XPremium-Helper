@@ -27,7 +27,7 @@ describe("reply model boundary", () => {
     expect(request.url).toBe("https://api.example.com/v1/chat/completions");
     expect(request.headers.Authorization).toBe("Bearer secret");
     expect(JSON.parse(request.body)).toMatchObject({
-      model: "test-model", stream: false, temperature: 0.7, max_tokens: 160,
+      model: "test-model", stream: false, temperature: 0.7, max_tokens: 240,
     });
     expect(request.body).not.toContain("cookie");
     expect(request.body).toContain("这是一条留言");
@@ -41,6 +41,9 @@ describe("reply model boundary", () => {
     expect(() => parseModelResponse({ choices: [] })).toThrow("没有返回");
     expect(() => parseModelResponse({ choices: [{ message: { content: "(N/A here)" } }] }))
       .toThrow("占位内容");
+    expect(() => parseModelResponse({
+      choices: [{ message: { content: "这是一句未完成的回复" }, finish_reason: "length" }],
+    })).toThrow("被截断");
     expect(() => parseModelResponse("<html>")).toThrow("格式");
   });
 });

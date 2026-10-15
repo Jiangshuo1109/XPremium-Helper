@@ -60,8 +60,11 @@ for (const target of targets) {
     const replyRoot = page.locator("[data-xfh-reply-root]");
     await replyRoot.waitFor();
     const replyPanel = replyRoot.locator("div.box");
+    await replyPanel.getByText("AI 推荐内容", { exact: true }).waitFor();
+    await replyPanel.getByText("X 当前草稿", { exact: true }).waitFor();
+    result.checks.push("reply-overlay-recommendation-and-draft-state");
     await replyPanel.getByRole("button", { name: "互动交流" }).click();
-    await replyPanel.getByRole("button", { name: "插入草稿" }).click();
+    await replyPanel.getByRole("button", { name: "重新写入" }).click();
     assert.equal(await editor.innerText(), "感谢留言，欢迎继续交流，也可以互相关注认识一下。");
     assert.equal(await page.evaluate(() => window.fixtureClicks?.alice ?? 0), 0);
     result.checks.push("reply-overlay-template-insert-without-send");
