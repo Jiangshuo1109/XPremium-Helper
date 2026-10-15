@@ -6,7 +6,7 @@
 
 A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow actions below X avatars after checking account identity and relationship evidence. Mutual follows receive a noninteractive label. Relationship changes require your click and use X's native controls.
 
-**Version 0.3.14, preview.** Generated quick replies now replace the current draft without sending, while the panel shows both the AI recommendation and the actual X draft. The request asks for only one or two complete sentences, with regeneration and an explicit insert-and-reply action.
+**Version 0.3.15, preview.** Generated quick replies now replace the current draft without sending, while the panel shows both the AI recommendation and the actual X draft. Presets write directly into a bound editor, and exact duplicates caused by X's asynchronous input suggestions are repaired. The request asks for only one or two complete sentences, with regeneration and an explicit insert-and-reply action.
 
 [Download preview](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Report a bug](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Changelog](CHANGELOG.md)
 

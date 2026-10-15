@@ -4,7 +4,7 @@
 
 Extensão para Chrome e Edge que coloca ações de seguir, seguir de volta e deixar de seguir abaixo dos avatares do X, após verificar a identidade e a relação entre as contas. Relações mútuas recebem uma etiqueta sem ação. Cada mudança depende do seu clique e usa os controles nativos do X.
 
-**Versão 0.3.14, prévia.** As respostas rápidas geradas agora substituem o rascunho atual sem enviar; o painel mostra separadamente a recomendação da IA e o rascunho real do X. A solicitação limita a resposta a uma ou duas frases completas, além de oferecer regeneração e uma ação explícita para inserir e responder.
+**Versão 0.3.15, prévia.** As respostas rápidas geradas agora substituem o rascunho atual sem enviar; o painel mostra separadamente a recomendação da IA e o rascunho real do X. Os modelos prontos são inseridos diretamente no editor vinculado, e duplicações exatas causadas pelas sugestões assíncronas de entrada do X são corrigidas. A solicitação limita a resposta a uma ou duas frases completas, além de oferecer regeneração e uma ação explícita para inserir e responder.
 
 [Baixar prévia](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Relatar problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Histórico](CHANGELOG.md)
 

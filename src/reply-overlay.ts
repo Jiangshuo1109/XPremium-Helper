@@ -24,6 +24,8 @@ export class ReplyOverlay {
   private writeState: WriteState = "idle";
   private observer: MutationObserver;
   private validationTimer: number | null = null;
+  private reconcileTimer: number | null = null;
+  private boundEditor: HTMLElement | null = null;
 
   constructor(private doc: Document) {
     doc.addEventListener("focusin", this.onFocus, true);
@@ -43,7 +45,10 @@ export class ReplyOverlay {
     if (!this.opened || this.validationTimer !== null) return;
     this.validationTimer = window.setTimeout(() => {
       this.validationTimer = null;
-      if (this.opened) this.validate();
+      if (this.opened) {
+        this.validate();
+        this.reconcileDuplicateDraft();
+      }
     }, 80);
   }
 
@@ -69,6 +74,7 @@ export class ReplyOverlay {
     }
     if (this.editor && (!this.canUseEditor(this.editor) ||
       (this.binding && (!context || `${context.handle}\n${context.topic}` !== this.binding)))) {
+      this.unbindEditor();
       this.editor = null;
       this.binding = "";
       this.writeState = "idle";
@@ -117,6 +123,7 @@ export class ReplyOverlay {
     this.writeState = "idle";
     this.selectedPreset = preset;
     this.editor = target;
+    this.bindEditor(target);
     this.binding = context ? `${context.handle}\n${context.topic}` : "";
     this.url = this.doc.location.href;
     this.opened = true;
@@ -135,6 +142,7 @@ export class ReplyOverlay {
     const context = editor ? this.context(editor) : null;
     this.close();
     this.editor = editor;
+    if (editor) this.bindEditor(editor);
     this.binding = context ? `${context.handle}\n${context.topic}` : "";
     this.url = this.doc.location.href;
     this.opened = true;
@@ -213,7 +221,10 @@ export class ReplyOverlay {
         button.className = "item"; button.textContent = item.title; button.type = "button";
         button.addEventListener("click", () => {
           this.selectedPreset = item;
-          this.setCandidate(replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" }));
+          this.setCandidate(
+            replaceVariables(item.text, context ?? { name: "", handle: "", topic: "" }),
+            Boolean(this.editor),
+          );
         });
         return button;
       }));
@@ -329,8 +340,54 @@ export class ReplyOverlay {
     const state = this.shadow?.querySelector<HTMLElement>(".recommendation-state");
     if (state) state.textContent = "已写入";
     this.syncDraft();
+    this.scheduleDuplicateReconcile();
     return true;
   }
+
+  private scheduleDuplicateReconcile(): void {
+    if (this.reconcileTimer !== null) window.clearTimeout(this.reconcileTimer);
+    this.reconcileTimer = window.setTimeout(() => {
+      this.reconcileTimer = null;
+      this.reconcileDuplicateDraft();
+    }, 120);
+  }
+
+  private reconcileDuplicateDraft(): void {
+    const editor = this.editor;
+    if (!editor || !this.candidate || !["written", "changed"].includes(this.writeState)
+      || !this.canUseEditor(editor)) return;
+    const draft = editor.textContent ?? "";
+    const normalizedCandidate = normalizeComparableText(this.candidate);
+    const normalizedDraft = normalizeComparableText(draft);
+    if (normalizedDraft !== `${normalizedCandidate} ${normalizedCandidate}`) return;
+    const ownerDocument = editor.ownerDocument;
+    editor.replaceChildren(ownerDocument.createTextNode(this.candidate));
+    const InputEventConstructor = ownerDocument.defaultView?.InputEvent ?? InputEvent;
+    editor.dispatchEvent(new InputEventConstructor("input", {
+      bubbles: true, inputType: "insertText", data: this.candidate,
+    }));
+    this.syncDraft();
+  }
+
+  private bindEditor(editor: HTMLElement): void {
+    this.unbindEditor();
+    this.boundEditor = editor;
+    editor.addEventListener("input", this.onEditorInput, true);
+    editor.addEventListener("beforeinput", this.onEditorInput, true);
+  }
+
+  private unbindEditor(): void {
+    if (!this.boundEditor) return;
+    this.boundEditor.removeEventListener("input", this.onEditorInput, true);
+    this.boundEditor.removeEventListener("beforeinput", this.onEditorInput, true);
+    this.boundEditor = null;
+  }
+
+  private onEditorInput = (): void => {
+    if (!this.opened) return;
+    this.syncDraft();
+    this.scheduleDuplicateReconcile();
+  };
 
   private syncDraft(): void {
     if (!this.shadow) return;
@@ -376,6 +433,7 @@ export class ReplyOverlay {
     this.candidate = "";
     this.selectedPreset = null;
     this.opened = false;
+    this.unbindEditor();
     this.editor = null;
     this.host?.remove();
     this.host = null;
@@ -383,6 +441,8 @@ export class ReplyOverlay {
     this.request = false;
     this.sending = false;
     this.writeState = "idle";
+    if (this.reconcileTimer !== null) window.clearTimeout(this.reconcileTimer);
+    this.reconcileTimer = null;
     if (this.enabled) {
       this.ensure();
       this.renderLauncher();
@@ -396,6 +456,7 @@ export class ReplyOverlay {
       this.selectedPreset = null;
       this.epoch++;
       this.opened = false;
+      this.unbindEditor();
       this.editor = null;
       this.host?.remove();
       this.host = null;
@@ -403,6 +464,8 @@ export class ReplyOverlay {
       this.request = false;
       this.sending = false;
       this.writeState = "idle";
+      if (this.reconcileTimer !== null) window.clearTimeout(this.reconcileTimer);
+      this.reconcileTimer = null;
       return;
     }
     this.ensure();
@@ -413,8 +476,11 @@ export class ReplyOverlay {
     this.epoch++;
     if (this.validationTimer !== null) window.clearTimeout(this.validationTimer);
     this.validationTimer = null;
+    if (this.reconcileTimer !== null) window.clearTimeout(this.reconcileTimer);
+    this.reconcileTimer = null;
     this.enabled = false;
     this.opened = false;
+    this.unbindEditor();
     this.editor = null;
     this.host?.remove();
     this.host = null;
@@ -426,4 +492,8 @@ export class ReplyOverlay {
     window.removeEventListener("resize", this.position);
     this.observer.disconnect();
   }
+}
+
+function normalizeComparableText(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
 }

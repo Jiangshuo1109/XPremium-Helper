@@ -77,7 +77,7 @@ it("does not send when the native reply button is unavailable", () => {
   click('[aria-label="打开快捷回复"]');
   click(".item");
   click(".send");
-  expect(editor.textContent).toBe("");
+  expect(editor.textContent).toContain("感谢留言");
   expect(root().querySelector(".status")?.textContent).toContain("没有找到");
 });
 
@@ -135,4 +135,24 @@ it("does not write the same generated reply twice", async () => {
   click(".insert");
   expect(editor.textContent).toBe("只写入一次。");
   expect(input).toHaveBeenCalledOnce();
+});
+
+it("repairs an exact duplicate created by the editor after automatic insertion", async () => {
+  const editor = composer();
+  vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({ text: "客气了兄弟，继续加油！" } as never);
+  click('[aria-label="打开快捷回复"]');
+  await root().querySelector<HTMLButtonElement>(".generate")!.click();
+  await vi.waitFor(() => expect(editor.textContent).toBe("客气了兄弟，继续加油！"));
+  editor.textContent = "客气了兄弟，继续加油！ 客气了兄弟，继续加油！";
+  editor.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText" }));
+  await vi.waitFor(() => expect(editor.textContent).toBe("客气了兄弟，继续加油！"), { timeout: 500 });
+  expect(root().querySelector(".draft-state")?.textContent).toContain("一致");
+});
+
+it("automatically inserts a preset into the bound editor", () => {
+  const editor = composer();
+  editor.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+  click(".item");
+  expect(editor.textContent).toContain("感谢留言");
+  expect(root().querySelector(".draft-state")?.textContent).toContain("一致");
 });
