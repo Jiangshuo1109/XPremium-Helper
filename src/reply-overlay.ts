@@ -3,7 +3,7 @@ import { insertReply, readReplyContext } from "./reply-context";
 import type { ReplyPreset } from "./reply-model";
 import type { ReplyContext } from "./reply-model";
 import { isVisible } from "./adapter";
-import { EDITOR } from "./reply-shortcut";
+import { EDITOR, replyButton } from "./reply-shortcut";
 
 export class ReplyOverlay {
   private host: HTMLDivElement | null = null;
@@ -180,14 +180,15 @@ export class ReplyOverlay {
       .topic{margin:8px 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
       .tabs{display:flex;gap:6px;margin:10px 0 8px}.tabs button,.item,.generate,.insert{border:1px solid #cfd9de;border-radius:999px;background:var(--surface);color:inherit;padding:6px 10px;cursor:pointer;font:inherit}
       .tabs button.active{border-color:var(--blue);color:var(--blue);background:#e8f5fd}.items{display:grid;gap:6px}.item{text-align:left;border-radius:10px;background:var(--soft)}
-      .item:hover,.insert:hover{background:#eff3f4}.actions{display:flex;gap:8px;margin-top:10px}.generate{flex:1;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}.generate:hover{background:#1a8cd8}.insert{flex:1}
+      .item:hover,.insert:hover,.send:hover{background:#eff3f4}.actions{display:flex;gap:8px;margin-top:10px}.generate{flex:1;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}.generate:hover{background:#1a8cd8}.insert{flex:1}.send{width:100%;margin-top:8px;border:1px solid var(--blue);border-radius:999px;background:var(--blue);color:#fff;padding:7px 10px;cursor:pointer;font:700 13px/1.4 inherit}.send:hover{background:#1a8cd8}
       .candidate{margin-top:9px;padding:8px;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;background:#e8f5fd;white-space:pre-wrap}.error{color:#b3261e}.choices{display:flex;gap:8px;margin-top:9px}select{min-width:0;flex:1;padding:6px 8px;background:var(--surface);color:inherit;border:1px solid #cfd9de;border-radius:8px;font:inherit}button:disabled{opacity:.55;cursor:default}
       .note{margin:7px 0 0;color:var(--muted);font-size:11px}.note:empty{display:none}
-      @media(prefers-color-scheme:dark){:host{--text:#e7e9ea;--muted:#8b98a5;--line:#2f3336;--surface:#000;--soft:#16181c}.box{box-shadow:0 8px 28px #00000088}.close:hover{background:#181818}.tabs button.active{background:#061d2b}.tabs button,.item,.generate,.insert{border-color:#536471}.item:hover,.insert:hover{background:#181818}.candidate{background:#061d2b}select{border-color:#536471}}
+      @media(prefers-color-scheme:dark){:host{--text:#e7e9ea;--muted:#8b98a5;--line:#2f3336;--surface:#000;--soft:#16181c}.box{box-shadow:0 8px 28px #00000088}.close:hover{background:#181818}.tabs button.active{background:#061d2b}.tabs button,.item,.generate,.insert,.send{border-color:#536471}.item:hover,.insert:hover,.send:hover{background:#181818}.candidate{background:#061d2b}select{border-color:#536471}}
     </style><div class="box"><div class="head"><strong>快捷回复</strong><button class="close" title="关闭">×</button></div>
       <div class="topic"></div><div class="tabs"></div><div class="items"></div>
       <div class="choices"><select aria-label="语言"><option>中文</option><option>English</option></select><select aria-label="语气"><option>自然</option><option>简洁</option><option>热情</option><option>专业</option></select></div>
       <div class="actions"><button class="generate">生成回复</button><button class="insert" disabled>插入草稿</button></div>
+      <button class="send" disabled>插入并回复</button>
       <div class="candidate" hidden></div><div class="note" role="status"></div></div>`;
     this.shadow.querySelector(".topic")!.textContent = context
       ? `回复 @${context.handle}：${context.topic}`
@@ -218,6 +219,7 @@ export class ReplyOverlay {
     this.shadow.querySelector(".close")!.addEventListener("click", () => this.close());
     this.shadow.querySelector(".generate")!.addEventListener("click", () => void this.generate());
     this.shadow.querySelector(".insert")!.addEventListener("click", () => this.insert());
+    this.shadow.querySelector(".send")!.addEventListener("click", () => this.insertAndSend());
     if (!context) {
       const generate = this.shadow.querySelector<HTMLButtonElement>(".generate")!;
       generate.disabled = true;
@@ -235,6 +237,8 @@ export class ReplyOverlay {
     candidate.textContent = text; candidate.hidden = false;
     const insert = this.shadow.querySelector<HTMLButtonElement>(".insert")!;
     insert.disabled = false;
+    const send = this.shadow.querySelector<HTMLButtonElement>(".send")!;
+    send.disabled = false;
     const note = this.shadow.querySelector<HTMLElement>(".note");
     if (note) {
       note.textContent = "预置回复无需配置 API，点击“插入草稿”后再自行发送";
@@ -288,6 +292,33 @@ export class ReplyOverlay {
       const note = this.shadow?.querySelector<HTMLElement>(".note");
       if (note) note.textContent = "未能插入，请重新选择回复框";
     }
+  }
+
+  private insertAndSend(): void {
+    if (!this.validate()) return;
+    this.editor ??= this.findEditor();
+    const editor = this.editor;
+    const text = this.candidate;
+    const button = editor ? replyButton(editor) : null;
+    if (!editor || !this.canUseEditor(editor) || !button
+      || button.hasAttribute("disabled") || button.getAttribute("aria-disabled") === "true") {
+      const note = this.shadow?.querySelector<HTMLElement>(".note");
+      if (note) {
+        note.textContent = "已保留草稿，但没有找到可确认的 X 回复按钮";
+        note.classList.add("error");
+      }
+      return;
+    }
+    if (!insertReply(editor, text)) {
+      const note = this.shadow?.querySelector<HTMLElement>(".note");
+      if (note) {
+        note.textContent = "写入回复框失败，未发送";
+        note.classList.add("error");
+      }
+      return;
+    }
+    button.click();
+    this.close();
   }
 
   private position = (): void => {

@@ -90,6 +90,8 @@ it("reads a non-article post from the current reply dialog", () => {
 
 it("does not duplicate text when execCommand changes the editor but reports false", () => {
   const editor = document.querySelector<HTMLElement>("[contenteditable]")!;
+  const input = vi.fn();
+  editor.addEventListener("input", input);
   Object.defineProperty(document, "execCommand", {
     configurable: true,
     value: vi.fn(() => {
@@ -99,6 +101,7 @@ it("does not duplicate text when execCommand changes the editor but reports fals
   });
   expect(insertReply(editor, "可以先看说明")).toBe(true);
   expect(editor.textContent).toBe("可以先看说明");
+  expect(input).not.toHaveBeenCalled();
 });
 
 it("does not append the same candidate when the editor already contains it", () => {
