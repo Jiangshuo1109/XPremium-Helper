@@ -27,7 +27,7 @@ describe("reply model boundary", () => {
     expect(request.url).toBe("https://api.example.com/v1/chat/completions");
     expect(request.headers.Authorization).toBe("Bearer secret");
     expect(JSON.parse(request.body)).toMatchObject({
-      model: "test-model", stream: false, temperature: 0.7, max_tokens: 240,
+      model: "test-model", stream: false, temperature: 0.7, max_tokens: 512,
     });
     expect(request.body).not.toContain("cookie");
     expect(request.body).toContain("这是一条留言");
