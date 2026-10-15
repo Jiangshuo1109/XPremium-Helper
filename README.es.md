@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.3.9, preliminar.** Los botones de relación incorporan la evidencia verificada de la tarjeta de perfil para “te sigue”, evitando que una cuenta mutual siga mostrando “dejar de seguir”. El acceso de respuestas acepta editores visibles sin un role o test id estándar.
+**Versión 0.3.10, preliminar.** Esta versión corrige la inserción duplicada de respuestas rápidas y amplía la lectura del mensaje actual en los diálogos de respuesta. La detección de relaciones en grupos aún no se ha validado en el sitio real.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 
