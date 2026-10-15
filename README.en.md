@@ -6,7 +6,7 @@
 
 A Chrome / Edge extension that adds follow, follow-back, and confirmed unfollow actions below X avatars after checking account identity and relationship evidence. Mutual follows receive a noninteractive label. Relationship changes require your click and use X's native controls.
 
-**Version 0.3.11, preview.** This release prevents duplicate input events from duplicating quick replies and adds an explicit insert-and-reply action. Group-chat relationship detection is not yet validated on the live site.
+**Version 0.3.12, preview.** This release replaces the current draft before inserting a quick reply, avoiding duplication caused by X's inline suggestions or caret position. It also includes an explicit insert-and-reply action.
 
 [Download preview](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Report a bug](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Changelog](CHANGELOG.md)
 
