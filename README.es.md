@@ -6,7 +6,7 @@
 
 Extensión para Chrome y Edge que añade acciones de seguir, seguir de vuelta y dejar de seguir debajo de los avatares de X, tras comprobar la identidad y la relación entre las cuentas. Las relaciones mutuas se muestran con una etiqueta sin acción. Cada cambio requiere un clic tuyo y utiliza los controles nativos de X.
 
-**Versión 0.3.11, preliminar.** Esta versión evita eventos de entrada duplicados en las respuestas rápidas y añade una acción explícita para insertar y responder. La detección de relaciones en grupos aún no se ha validado en el sitio real.
+**Versión 0.3.12, preliminar.** Esta versión reemplaza el borrador actual antes de insertar una respuesta rápida para evitar duplicados causados por las sugerencias de X o la posición del cursor. También incluye una acción explícita para insertar y responder.
 
 [Descargar versión preliminar](https://github.com/Jiangshuo1109/XPremium-Helper/releases) · [Informar de un problema](https://github.com/Jiangshuo1109/XPremium-Helper/issues) · [Historial](CHANGELOG.md)
 

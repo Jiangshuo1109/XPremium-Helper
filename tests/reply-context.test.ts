@@ -32,6 +32,24 @@ it("inserts a candidate into the draft and emits input", () => {
   expect(input).toHaveBeenCalledOnce();
 });
 
+it("replaces the existing draft instead of appending at the active caret", () => {
+  const editor = document.querySelector<HTMLElement>("[contenteditable]")!;
+  editor.textContent = "旧的输入建议";
+  const commands: string[] = [];
+  Object.defineProperty(document, "execCommand", {
+    configurable: true,
+    value: vi.fn((command: string) => {
+      commands.push(command);
+      if (command === "selectAll") editor.textContent = "";
+      if (command === "insertText") editor.textContent = "新的完整回复";
+      return false;
+    }),
+  });
+  expect(insertReply(editor, "新的完整回复")).toBe(true);
+  expect(commands).toEqual(["selectAll", "insertText"]);
+  expect(editor.textContent).toBe("新的完整回复");
+});
+
 it("binds a notification reply dialog to its own preceding post", () => {
   history.replaceState(null, "", "/notifications");
   const post = document.querySelector("article")!;

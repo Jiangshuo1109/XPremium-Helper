@@ -81,17 +81,17 @@ export function insertReply(editor: HTMLElement, text: string): boolean {
   if (!text.trim() || !editor.isConnected) return false;
   editor.focus();
   const before = editor.textContent ?? "";
+  if (before === text) return true;
+  // Replace the current draft instead of inserting at X's active caret. This
+  // also clears an inline completion that X may have attached to the old text.
+  document.execCommand?.("selectAll", false);
   document.execCommand?.("insertText", false, text);
   const after = editor.textContent ?? "";
-  // Chromium/X can report false after the command has already changed the editor.
-  if (after !== before) {
-    return after.includes(text);
-  }
-  if (before.includes(text)) return true;
-  if (!after.trim()) {
+  if (after === text) return true;
+  if (after === before || !after.trim()) {
     editor.replaceChildren(document.createTextNode(text));
     editor.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: text }));
-    return true;
+    return editor.textContent === text;
   }
   return false;
 }
